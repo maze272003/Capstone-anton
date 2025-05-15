@@ -3,6 +3,10 @@ $page_title = 'Sale Report';
   require_once('includes/load.php');
   // Checkin What level user has permission to view this page
    page_require_level(3);
+   if(isset($start_date) && isset($end_date)) {
+    echo "Start Date: " . htmlspecialchars($start_date) . "<br>";
+    echo "End Date: " . htmlspecialchars($end_date) . "<br>";
+}
 ?>
 <?php include_once('layouts/header.php'); ?>
 <div class="row">
@@ -31,9 +35,7 @@ $page_title = 'Sale Report';
             </div>
           </form>
       </div>
-
     </div>
   </div>
-
 </div>
 <?php include_once('layouts/footer.php'); ?>

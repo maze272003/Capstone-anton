@@ -5,8 +5,26 @@ require_once('tcpdf/tcpdf.php');
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $start_date = $_POST['start_date'];
     $end_date = $_POST['end_date'];
+    // Decode the JSON data
     $sales_data = json_decode($_POST['sales_data'], true);
     
+    // Check if this is a daily/weekly/monthly report with the new structure
+    if (isset($sales_data['data'])) {
+        $report_data = $sales_data['data'];
+        $grand_total = $sales_data['grand_total'];
+        $profit = $sales_data['profit'];
+    } else {
+        // For backward compatibility with custom date range
+        $report_data = $sales_data;
+        $grand_total = 0;
+        $total_buying_price = 0;
+        foreach ($report_data as $row) {
+            $grand_total += $row['total_saleing_price'];
+            $total_buying_price += ($row['buy_price'] * $row['total_sales']);
+        }
+        $profit = $grand_total - $total_buying_price;
+    }
+
     // Create new PDF document in Landscape mode ('L')
     $pdf = new TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     $pdf->SetCreator(PDF_CREATOR);
@@ -40,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $total_sales = 0;
     $total_profit = 0;
 
-    foreach ($sales_data as $row) {
+    foreach ($report_data as $row) {
         $total_sales += $row['total_saleing_price'];
         $profit = ($row['sale_price'] - $row['buy_price']) * $row['total_sales'];
         $total_profit += $profit;

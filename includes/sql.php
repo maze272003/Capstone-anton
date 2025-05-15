@@ -176,9 +176,12 @@ function tableExists($table){
   function find_by_groupLevel($level)
   {
     global $db;
-    $sql = "SELECT group_level FROM user_groups WHERE group_level = '{$db->escape($level)}' LIMIT 1 ";
+    $sql = "SELECT * FROM user_groups WHERE group_level = '{$db->escape($level)}' LIMIT 1 ";
     $result = $db->query($sql);
-    return($db->num_rows($result) === 0 ? true : false);
+    if($result && $db->num_rows($result) > 0) {
+      return $db->fetch_assoc($result);
+    }
+    return null;
   }
   /*--------------------------------------------------------------*/
   /* Function for cheaking which user level has access to page
@@ -305,21 +308,29 @@ function find_recent_sale_added($limit){
 /*--------------------------------------------------------------*/
 /* Function for Generate sales report by two dates
 /*--------------------------------------------------------------*/
-function find_sale_by_dates($start_date,$end_date){
+function find_sale_by_dates($start_date, $end_date) {
   global $db;
-  $start_date  = date("Y-m-d", strtotime($start_date));
-  $end_date    = date("Y-m-d", strtotime($end_date));
-  $sql  = "SELECT s.date, p.name,p.sale_price,p.buy_price,";
-  $sql .= "COUNT(s.product_id) AS total_records,";
-  $sql .= "SUM(s.qty) AS total_sales,";
-  $sql .= "SUM(p.sale_price * s.qty) AS total_saleing_price,";
-  $sql .= "SUM(p.buy_price * s.qty) AS total_buying_price ";
-  $sql .= "FROM sales s ";
-  $sql .= "LEFT JOIN products p ON s.product_id = p.id";
-  $sql .= " WHERE s.date BETWEEN '{$start_date}' AND '{$end_date}'";
-  $sql .= " GROUP BY DATE(s.date),p.name";
-  $sql .= " ORDER BY DATE(s.date) DESC";
-  return $db->query($sql);
+  
+  $sql = "SELECT s.id, s.date, p.name, p.sale_price, p.buy_price,
+          SUM(s.qty) AS total_sales,
+          SUM(s.qty * s.price) AS total_saleing_price
+          FROM sales s
+          LEFT JOIN products p ON s.product_id = p.id
+          WHERE s.date >= '{$start_date}'
+          AND s.date <= '{$end_date}'
+          GROUP BY s.date, p.name, p.sale_price, p.buy_price
+          ORDER BY s.date DESC";
+          
+  $result = $db->query($sql);
+  
+  if($result) {
+    $results_array = array();
+    while ($row = $result->fetch_assoc()) {
+      $results_array[] = $row;
+    }
+    return $results_array;
+  }
+  return array();
 }
 /*--------------------------------------------------------------*/
 /* Function for Generate Daily sales report
