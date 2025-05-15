@@ -11,16 +11,44 @@ $c_product = count_by_id('products');
 $c_sale = count_by_id('sales');
 $c_user = count_by_id('users');
 
+// Get filter for top selling products
+$product_filter = isset($_GET['product_filter']) ? $_GET['product_filter'] : 'all';
+
 // Get top selling products with accurate total sales calculation
-$products_sold = find_highest_selling_products('10');
+$products_sold = find_highest_selling_products('10', $product_filter);
 $recent_products = find_recent_product_added('5');
 
 // Function to get highest selling products with correct total sales
-function find_highest_selling_products($limit) {
+function find_highest_selling_products($limit, $filter = 'all') {
     global $db;
+    
+    $where = '';
+    $today = date('Y-m-d');
+    $start_of_week = date('Y-m-d', strtotime('monday this week'));
+    $start_of_month = date('Y-m-01');
+    $start_of_year = date('Y-01-01');
+    
+    switch($filter) {
+        case 'today':
+            $where = "WHERE DATE(s.date) = '{$today}'";
+            break;
+        case 'week':
+            $where = "WHERE DATE(s.date) BETWEEN '{$start_of_week}' AND '{$today}'";
+            break;
+        case 'month':
+            $where = "WHERE DATE(s.date) BETWEEN '{$start_of_month}' AND '{$today}'";
+            break;
+        case 'year':
+            $where = "WHERE DATE(s.date) BETWEEN '{$start_of_year}' AND '{$today}'";
+            break;
+        default:
+            $where = "";
+    }
+    
     $sql = "SELECT p.name, p.id, SUM(s.qty) as totalSold, SUM(s.price * s.qty) as totalSales
             FROM sales s
             LEFT JOIN products p ON p.id = s.product_id
+            {$where}
             GROUP BY s.product_id
             ORDER BY totalSold DESC
             LIMIT {$limit}";
@@ -302,11 +330,25 @@ function createDateRangeArray($startDate, $endDate) {
 <div class="row">
   <div class="col-md-12">
     <div class="panel panel-default">
-      <div class="panel-heading">
+      <div class="panel-heading clearfix">
         <strong>
           <span class="glyphicon glyphicon-th"></span>
           <span>Top Selling Products</span>
         </strong>
+        <div class="pull-right">
+          <form method="get" action="" class="form-inline">
+            <div class="form-group">
+              <label for="product_filter" class="control-label">Filter: </label>
+              <select name="product_filter" id="product_filter" class="form-control input-sm" onchange="this.form.submit()">
+                <option value="all" <?= ($product_filter == 'all') ? 'selected' : '' ?>>All Time</option>
+                <option value="today" <?= ($product_filter == 'today') ? 'selected' : '' ?>>Today</option>
+                <option value="week" <?= ($product_filter == 'week') ? 'selected' : '' ?>>This Week</option>
+                <option value="month" <?= ($product_filter == 'month') ? 'selected' : '' ?>>This Month</option>
+                <option value="year" <?= ($product_filter == 'year') ? 'selected' : '' ?>>This Year</option>
+              </select>
+            </div>
+          </form>
+        </div>
       </div>
       <div class="panel-body">
         <table class="table table-striped table-bordered table-condensed">
@@ -319,10 +361,16 @@ function createDateRangeArray($startDate, $endDate) {
           </thead>
           <tbody>
           <?php 
+          $grandTotalSold = 0;
+          $grandTotalSales = 0;
+          
           foreach ($products_sold as $product): 
               $name = isset($product['name']) ? remove_junk(first_character($product['name'])) : 'Unknown Product';
               $totalSold = isset($product['totalSold']) ? (int)$product['totalSold'] : 0;
               $totalSales = isset($product['totalSales']) ? (float)$product['totalSales'] : 0;
+              
+              $grandTotalSold += $totalSold;
+              $grandTotalSales += $totalSales;
           ?>
             <tr>
               <td><?= $name ?></td>
@@ -330,6 +378,11 @@ function createDateRangeArray($startDate, $endDate) {
               <td>₱<?= number_format($totalSales, 2) ?></td>
             </tr>
           <?php endforeach; ?>
+          <tr class="info">
+            <td><strong>Grand Total</strong></td>
+            <td><strong><?= $grandTotalSold ?></strong></td>
+            <td><strong>₱<?= number_format($grandTotalSales, 2) ?></strong></td>
+          </tr>
           </tbody>
         </table>
       </div>
