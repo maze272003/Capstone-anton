@@ -17,6 +17,7 @@ $recent_products = find_recent_product_added('5');
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'year';
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-7 days'));
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
+$chart_type = isset($_GET['chart_type']) ? $_GET['chart_type'] : 'bar';
 $year = date('Y');
 $month = date('m');
 $day = date('d');
@@ -223,6 +224,14 @@ function createDateRangeArray($startDate, $endDate) {
     margin-bottom: 15px;
     display: <?php echo ($filter == 'custom') ? 'block' : 'none'; ?>;
   }
+  .chart-type-selector {
+    margin-left: 10px;
+  }
+  .chart-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+  }
 </style>
 
 <div class="row">
@@ -244,6 +253,17 @@ function createDateRangeArray($startDate, $endDate) {
                 <option value="custom" <?= ($filter == 'custom') ? 'selected' : '' ?>>Custom Date Range</option>
               </select>
             </div>
+            <div class="form-group chart-type-selector">
+              <label for="chart_type" class="control-label">Chart: </label>
+              <select name="chart_type" id="chart_type" class="form-control input-sm">
+                <option value="bar" <?= ($chart_type == 'bar') ? 'selected' : '' ?>>Bar</option>
+                <option value="line" <?= ($chart_type == 'line') ? 'selected' : '' ?>>Line</option>
+                <option value="pie" <?= ($chart_type == 'pie') ? 'selected' : '' ?>>Pie</option>
+                <option value="doughnut" <?= ($chart_type == 'doughnut') ? 'selected' : '' ?>>Doughnut</option>
+                <option value="radar" <?= ($chart_type == 'radar') ? 'selected' : '' ?>>Radar</option>
+                <option value="polarArea" <?= ($chart_type == 'polarArea') ? 'selected' : '' ?>>Polar Area</option>
+              </select>
+            </div>
             <div id="dateRangeSelector" class="date-range-selector form-group">
               <label for="start_date">From:</label>
               <input type="date" name="start_date" id="start_date" class="form-control input-sm" 
@@ -257,7 +277,9 @@ function createDateRangeArray($startDate, $endDate) {
         </div>
       </div>
       <div class="panel-body">
-        <canvas id="salesChart" height="400"></canvas>
+        <div class="chart-container">
+          <canvas id="salesChart"></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -335,8 +357,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize elements
     const filterForm = document.getElementById('filterForm');
     const filterSelect = document.getElementById('filter');
+    const chartTypeSelect = document.getElementById('chart_type');
     const dateRangeSelector = document.getElementById('dateRangeSelector');
     const applyBtn = document.getElementById('applyFilter');
+    const ctx = document.getElementById('salesChart').getContext('2d');
     
     // Set default dates if empty
     if (!document.getElementById('start_date').value) {
@@ -379,6 +403,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Handle chart type change
+    chartTypeSelect.addEventListener('change', function() {
+        filterForm.submit();
+    });
+    
     // Handle apply button click
     applyBtn.addEventListener('click', function() {
         filterForm.submit();
@@ -390,36 +419,92 @@ document.addEventListener('DOMContentLoaded', function() {
     const xAxisTitle = <?= json_encode(
         $filter == 'year' ? 'Month' : ($filter == 'month' ? 'Day' : ($filter == 'day' ? 'Hour' : 'Date'))
     ) ?>;
+    const chartType = '<?= $chart_type ?>';
     
-    new Chart(
-        document.getElementById('salesChart').getContext('2d'),
-        {
-            type: 'bar',
-            data: {
-                labels: salesLabels,
-                datasets: [{
-                    label: 'Total Sales (₱)',
-                    data: salesData,
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
+    // Generate random colors for pie/doughnut charts
+    function generateColors(count) {
+        const colors = [];
+        for (let i = 0; i < count; i++) {
+            colors.push(`hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`);
+        }
+        return colors;
+    }
+    
+    // Common chart configuration
+    const commonConfig = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Total Sales (₱)' }
-                    },
-                    x: {
-                        title: { display: true, text: xAxisTitle }
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return ` ₱${context.raw.toFixed(2)}`;
                     }
                 }
             }
         }
-    );
+    };
+    
+    // Bar/Line chart specific options
+    if (['bar', 'line', 'radar'].includes(chartType)) {
+        commonConfig.scales = {
+            y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Total Sales (₱)' }
+            },
+            x: {
+                title: { display: true, text: xAxisTitle }
+            }
+        };
+    }
+    
+    // Dataset configuration
+    let datasetConfig;
+    if (['pie', 'doughnut', 'polarArea'].includes(chartType)) {
+        datasetConfig = {
+            data: salesData,
+            backgroundColor: generateColors(salesLabels.length),
+            borderWidth: 1
+        };
+    } else {
+        datasetConfig = {
+            label: 'Total Sales (₱)',
+            data: salesData,
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1,
+            fill: chartType === 'line'
+        };
+    }
+    
+    // Create chart
+    let chart = new Chart(ctx, {
+        type: chartType,
+        data: {
+            labels: salesLabels,
+            datasets: [datasetConfig]
+        },
+        options: commonConfig
+    });
+    
+    // Function to update chart
+    function updateChart() {
+        chart.destroy();
+        chart = new Chart(ctx, {
+            type: chartType,
+            data: {
+                labels: salesLabels,
+                datasets: [datasetConfig]
+            },
+            options: commonConfig
+        });
+    }
+    
+    // Update chart when window is resized
+    window.addEventListener('resize', updateChart);
 });
 </script>
 
