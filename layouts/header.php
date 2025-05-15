@@ -12,7 +12,8 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker3.min.css" />
     <link rel="stylesheet" href="libs/css/main.css" />
-    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css" />
+    <!-- fontawesome pro icons private -->
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css" /> 
   </head>
   <body>
   <?php  if ($session->isUserLoggedIn(true)): ?>
@@ -22,6 +23,7 @@
       <div class="header-date pull-left">
         <strong><?php echo date("F j, Y, g:i a");?></strong>
       </div>
+      
       <div class="pull-right clearfix">
         <ul class="info-menu list-inline list-unstyled">
           <li class="profile">

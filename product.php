@@ -138,12 +138,13 @@ include_once('layouts/header.php');
         border-color: #dc3545;
     }
 </style>
-
+<br>
+<br>
+<br>
 <div class="row">
-    <div class="col-md-12">
+<div class="col-md-12">
         <?php echo display_msg($msg); ?>
     </div>
-
     <!-- Search and Filter Section -->
     <div class="col-md-12 search-filter-container">
         <form method="get" action="">
@@ -241,7 +242,7 @@ include_once('layouts/header.php');
                                             <?php if ($product['quantity'] < 10): ?>
                                                 <span class="label label-danger">⚠️ Needed Re-stock</span>
                                             <?php else: ?>
-                                                <span class="label label-success">✔️ In Stock</span>
+                                                <span class="label label-success">✔️ High Stocks</span>
                                             <?php endif; ?>
                                         </td>
                                         <td class="text-center">₱<?php echo remove_junk($product['buy_price']); ?></td>
