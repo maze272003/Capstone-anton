@@ -3,43 +3,6 @@ $page_title = 'All Products';
 require_once('includes/load.php');
 page_require_level(1);
 
-// Initialize shopping cart session
-if (!isset($_SESSION['cart'])) {
-    $_SESSION['cart'] = array();
-}
-
-// Handle add to cart action
-if (isset($_POST['add_to_cart'])) {
-    $product_id = (int)$_POST['product_id'];
-    $quantity = (int)$_POST['quantity'];
-    
-    if (array_key_exists($product_id, $_SESSION['cart'])) {
-        $_SESSION['cart'][$product_id] += $quantity;
-    } else {
-        $_SESSION['cart'][$product_id] = $quantity;
-    }
-    
-    $session->msg('s', "Product added to cart");
-    redirect('products.php', false);
-}
-
-// Handle remove from cart action
-if (isset($_GET['remove_from_cart'])) {
-    $product_id = (int)$_GET['remove_from_cart'];
-    if (array_key_exists($product_id, $_SESSION['cart'])) {
-        unset($_SESSION['cart'][$product_id]);
-        $session->msg('s', "Product removed from cart");
-    }
-    redirect('products.php', false);
-}
-
-// Handle clear cart action
-if (isset($_GET['clear_cart'])) {
-    $_SESSION['cart'] = array();
-    $session->msg('s', "Cart cleared");
-    redirect('products.php', false);
-}
-
 // Get search and filter parameters
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 $category_filter = isset($_GET['category']) ? $_GET['category'] : '';
@@ -153,70 +116,32 @@ include_once('layouts/header.php');
         border-radius: 5px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .cart-container {
-        position: fixed;
-        right: 20px;
-        top: 100px;
-        width: 300px;
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 15px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        z-index: 1000;
-        max-height: 500px;
-        overflow-y: auto;
+    .action-icons {
+        font-size: 1.2em;
     }
-    .cart-item {
-        border-bottom: 1px solid #eee;
-        padding: 8px 0;
+    .action-icons a {
+        margin: 0 3px;
+        padding: 5px 8px;
+        border-radius: 4px;
     }
-    .cart-total {
-        font-weight: bold;
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid #ddd;
+    .action-icons a:hover {
+        opacity: 0.8;
     }
-    .quantity-input {
-        width: 60px;
-        display: inline-block;
+    .btn-edit {
+        color: #fff;
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+    .btn-delete {
+        color: #fff;
+        background-color: #dc3545;
+        border-color: #dc3545;
     }
 </style>
 
 <div class="row">
     <div class="col-md-12">
         <?php echo display_msg($msg); ?>
-    </div>
-
-    <!-- Shopping Cart -->
-    <div class="cart-container">
-        <h4>Shopping Cart <small>(<?php echo count($_SESSION['cart']); ?> items)</small></h4>
-        <?php if (!empty($_SESSION['cart'])): ?>
-            <?php 
-            $total = 0;
-            foreach ($_SESSION['cart'] as $product_id => $quantity): 
-                $product = find_by_id('products', $product_id);
-                $subtotal = $product['sale_price'] * $quantity;
-                $total += $subtotal;
-            ?>
-                <div class="cart-item">
-                    <strong><?php echo $product['name']; ?></strong><br>
-                    Qty: <?php echo $quantity; ?> × ₱<?php echo $product['sale_price']; ?> = ₱<?php echo number_format($subtotal, 2); ?>
-                    <a href="products.php?remove_from_cart=<?php echo $product_id; ?>" class="btn btn-xs btn-danger pull-right" title="Remove">
-                        <span class="glyphicon glyphicon-remove"></span>
-                    </a>
-                </div>
-            <?php endforeach; ?>
-            <div class="cart-total">
-                Total: ₱<?php echo number_format($total, 2); ?>
-            </div>
-            <div class="text-center" style="margin-top: 10px;">
-                <a href="checkout.php" class="btn btn-success btn-sm">Checkout</a>
-                <a href="products.php?clear_cart" class="btn btn-danger btn-sm">Clear Cart</a>
-            </div>
-        <?php else: ?>
-            <p class="text-center">Your cart is empty</p>
-        <?php endif; ?>
     </div>
 
     <!-- Search and Filter Section -->
@@ -286,7 +211,7 @@ include_once('layouts/header.php');
                                     <th class="text-center" style="width: 10%;">Buying Price</th>
                                     <th class="text-center" style="width: 10%;">Selling Price</th>
                                     <th class="text-center" style="width: 10%;">Product Added</th>
-                                    <th class="text-center" style="width: 150px;">Actions</th>
+                                    <th class="text-center" style="width: 120px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -322,22 +247,13 @@ include_once('layouts/header.php');
                                         <td class="text-center">₱<?php echo remove_junk($product['buy_price']); ?></td>
                                         <td class="text-center">₱<?php echo remove_junk($product['sale_price']); ?></td>
                                         <td class="text-center"> <?php echo read_date($product['date']); ?> </td>
-                                        <td class="text-center">
-                                            <div class="btn-group">
-                                                <form method="post" action="products.php" style="display: inline;">
-                                                    <input type="hidden" name="product_id" value="<?php echo (int)$product['id']; ?>">
-                                                    <input type="number" name="quantity" value="1" min="1" max="<?php echo $product['quantity']; ?>" class="quantity-input">
-                                                    <button type="submit" name="add_to_cart" class="btn btn-success btn-xs" title="Add to Cart">
-                                                        <span class="glyphicon glyphicon-shopping-cart"></span>
-                                                    </button>
-                                                </form>
-                                                <a href="edit_product.php?id=<?php echo (int)$product['id']; ?>" class="btn btn-info btn-xs" title="Edit">
-                                                    <span class="glyphicon glyphicon-edit"></span>
-                                                </a>
-                                                <a href="delete_product.php?id=<?php echo (int)$product['id']; ?>" class="btn btn-danger btn-xs" title="Delete">
-                                                    <span class="glyphicon glyphicon-trash"></span>
-                                                </a>
-                                            </div>
+                                        <td class="text-center action-icons">
+                                            <a href="edit_product.php?id=<?php echo (int)$product['id']; ?>" class="btn-edit" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="delete_product.php?id=<?php echo (int)$product['id']; ?>" class="btn-delete" title="Delete">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
