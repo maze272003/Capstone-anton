@@ -10,8 +10,22 @@ $c_categorie = count_by_id('categories');
 $c_product = count_by_id('products');
 $c_sale = count_by_id('sales');
 $c_user = count_by_id('users');
-$products_sold = find_higest_saleing_product('10');
+
+// Get top selling products with accurate total sales calculation
+$products_sold = find_highest_selling_products('10');
 $recent_products = find_recent_product_added('5');
+
+// Function to get highest selling products with correct total sales
+function find_highest_selling_products($limit) {
+    global $db;
+    $sql = "SELECT p.name, p.id, SUM(s.qty) as totalSold, SUM(s.price * s.qty) as totalSales
+            FROM sales s
+            LEFT JOIN products p ON p.id = s.product_id
+            GROUP BY s.product_id
+            ORDER BY totalSold DESC
+            LIMIT {$limit}";
+    return find_by_sql($sql);
+}
 
 // Get filter parameters
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'year';
@@ -304,13 +318,18 @@ function createDateRangeArray($startDate, $endDate) {
             </tr>
           </thead>
           <tbody>
-            <?php foreach ($products_sold as $product): ?>
-              <tr>
-                <td><?= remove_junk(first_character($product['name'])) ?></td>
-                <td><?= (int)$product['totalSold'] ?></td>
-                <td>₱<?= number_format($product['totalSales'], 2) ?></td>
-              </tr>
-            <?php endforeach; ?>
+          <?php 
+          foreach ($products_sold as $product): 
+              $name = isset($product['name']) ? remove_junk(first_character($product['name'])) : 'Unknown Product';
+              $totalSold = isset($product['totalSold']) ? (int)$product['totalSold'] : 0;
+              $totalSales = isset($product['totalSales']) ? (float)$product['totalSales'] : 0;
+          ?>
+            <tr>
+              <td><?= $name ?></td>
+              <td><?= $totalSold ?></td>
+              <td>₱<?= number_format($totalSales, 2) ?></td>
+            </tr>
+          <?php endforeach; ?>
           </tbody>
         </table>
       </div>
