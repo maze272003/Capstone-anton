@@ -7,11 +7,11 @@
                 <ul>
                 <?php if(isset($user['user_level']) && $user['user_level'] === '1'): ?>
                         <!-- Admin Menu Links -->
-                        <li><a href="home.php"><i class="fas fa-home"></i> Dashboard</a></li>
+                        <li><a href="admin.php"><i class="fas fa-home"></i> Dashboard</a></li>
                         <li><a href="users.php"><i class="fas fa-users"></i> Users</a></li>
                         
                         <li><a href="product.php"><i class="fas fa-box-open"></i> Products</a></li>
-                        <li><a href="add_product.php"><i class="fa-solid fa-plus"></i> Add Products</a></li>
+                        <li><a href="add_product.php"><i class="fa-solid fa-plus"></i> Add New Products</a></li>
                     
                         <li><a href="sales.php"><i class="fas fa-shopping-cart"></i> Sales</a></li>
                         <li><a href="sales_report.php"><i class="fa-solid fa-calendar-days"></i>Selacted date Sales</a></li>
