@@ -2,6 +2,7 @@
 $page_title = 'Admin Home Page';
 require_once('includes/load.php');
 
+
 // Permission check
 page_require_level(1);
 
@@ -13,6 +14,15 @@ $c_user = count_by_id('users');
 
 // Get filter for top selling products
 $product_filter = isset($_GET['product_filter']) ? $_GET['product_filter'] : 'all';
+
+// Get filter parameters for sales chart
+$filter = isset($_GET['filter']) ? $_GET['filter'] : 'year';
+$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-7 days'));
+$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
+$chart_type = isset($_GET['chart_type']) ? $_GET['chart_type'] : 'bar';
+$year = date('Y');
+$month = date('m');
+$day = date('d');
 
 // Get top selling products with accurate total sales calculation
 $products_sold = find_highest_selling_products('10', $product_filter);
@@ -168,32 +178,12 @@ if ($filter == 'year') {
         }
     }
 }
-
-// Added functions to get items sold data
-function get_items_sold_by_month($year) {
-    global $db;
-    $sql = "SELECT MONTH(date) as month, SUM(qty) as total_qty
-            FROM sales
-            WHERE YEAR(date) = '{$year}'
-            GROUP BY MONTH(date)";
-    return find_by_sql($sql);
-}
-
 function get_items_sold_by_day($year, $month) {
     global $db;
     $sql = "SELECT DAY(date) as day, SUM(qty) as total_qty
             FROM sales
             WHERE YEAR(date) = '{$year}' AND MONTH(date) = '{$month}'
             GROUP BY DAY(date)";
-    return find_by_sql($sql);
-}
-
-function get_items_sold_by_hour($date) {
-    global $db;
-    $sql = "SELECT HOUR(date) as hour, SUM(qty) as total_qty
-            FROM sales
-            WHERE DATE(date) = '{$date}'
-            GROUP BY HOUR(date)";
     return find_by_sql($sql);
 }
 
@@ -205,35 +195,6 @@ function get_items_sold_by_date_range($start_date, $end_date) {
             GROUP BY DATE(date)";
     return find_by_sql($sql);
 }
-
-
-function get_sales_by_month($year) {
-    global $db;
-    $sql = "SELECT MONTH(date) as month, SUM(price * qty) as total_sales
-            FROM sales
-            WHERE YEAR(date) = '{$year}'
-            GROUP BY MONTH(date)";
-    return find_by_sql($sql);
-}
-
-function get_sales_by_day($year, $month) {
-    global $db;
-    $sql = "SELECT DAY(date) as day, SUM(price * qty) as total_sales
-            FROM sales
-            WHERE YEAR(date) = '{$year}' AND MONTH(date) = '{$month}'
-            GROUP BY DAY(date)";
-    return find_by_sql($sql);
-}
-
-function get_sales_by_hour($date) {
-    global $db;
-    $sql = "SELECT HOUR(date) as hour, SUM(price * qty) as total_sales
-            FROM sales
-            WHERE DATE(date) = '{$date}'
-            GROUP BY HOUR(date)";
-    return find_by_sql($sql);
-}
-
 function get_sales_by_date_range($start_date, $end_date) {
     global $db;
     $sql = "SELECT DATE(date) as date, SUM(price * qty) as total_sales

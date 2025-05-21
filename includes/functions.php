@@ -129,6 +129,74 @@ function find_category_sales_summary() {
   return find_by_sql($sql);
 }
 
+/*--------------------------------------------------------------*/
+/* Function: Get sales by month
+/*--------------------------------------------------------------*/
+function get_sales_by_month($year) {
+  global $db;
+  $sql = "SELECT MONTH(date) AS month, SUM(qty * price) AS total_sales 
+          FROM sales 
+          WHERE YEAR(date) = '{$db->escape($year)}' 
+          GROUP BY MONTH(date)";
+  return find_by_sql($sql);
+}
 
+/*--------------------------------------------------------------*/
+/* Function: Get items sold by month
+/*--------------------------------------------------------------*/
+function get_items_sold_by_month($year) {
+  global $db;
+  $sql = "SELECT MONTH(date) AS month, SUM(qty) AS total_qty 
+          FROM sales 
+          WHERE YEAR(date) = '{$db->escape($year)}' 
+          GROUP BY MONTH(date)";
+  return find_by_sql($sql);
+}
+/*--------------------------------------------------------------*/
+/* Function: Get total items sold by hour
+/*--------------------------------------------------------------*/
+function get_items_sold_by_hour($date) {
+  global $db;
+  $sql = "SELECT HOUR(date) AS hour, SUM(qty) AS items_sold 
+          FROM sales 
+          WHERE DATE(date) = '{$db->escape($date)}' 
+          GROUP BY HOUR(date)";
+  return find_by_sql($sql);
+}
+/*--------------------------------------------------------------*/
+/* Function: Get sales by hour
+/*--------------------------------------------------------------*/
+function get_sales_by_hour($date) {
+  global $db;
+  $sql = "SELECT HOUR(date) AS hour, SUM(qty * price) AS total_sales 
+          FROM sales 
+          WHERE DATE(date) = '{$db->escape($date)}' 
+          GROUP BY HOUR(date)";
+  return find_by_sql($sql);
+}
 
+function get_sales_by_day($month, $year) {
+  global $db; // Changed from $con to $db
+
+  $safe_month = $db->escape($month); // Using $db->escape()
+  $safe_year = $db->escape($year); // Using $db->escape()
+
+  $sql = "SELECT DAY(date) AS day, SUM(price * qty) AS total_sales
+          FROM sales
+          WHERE MONTH(date) = '{$safe_month}'
+            AND YEAR(date) = '{$safe_year}'
+          GROUP BY DAY(date)
+          ORDER BY DAY(date)";
+
+  $result = $db->query($sql); // Using $db->query()
+  $data = [];
+
+  if ($result) {
+    while ($row = $db->fetch_assoc($result)) { // Using $db->fetch_assoc()
+      $data[] = $row;
+    }
+  }
+
+  return $data;
+}
 ?>
