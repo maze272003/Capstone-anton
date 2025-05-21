@@ -361,5 +361,45 @@ function  monthlySales($year){
   $sql .= " ORDER BY date_format(s.date, '%c' ) ASC";
   return find_by_sql($sql);
 }
+/*--------------------------------------------------------------*/
+/* Function for Get total items sold by day for a given month and year
+/*--------------------------------------------------------------*/
+function get_items_sold_by_day($year, $month) {
+  global $db;
+  $sql = "SELECT DAY(date) as day, SUM(qty) as total_qty
+          FROM sales
+          WHERE YEAR(date) = '{$db->escape($year)}' AND MONTH(date) = '{$db->escape($month)}'
+          GROUP BY DAY(date)
+          ORDER BY DAY(date) ASC";
+  $result = $db->query($sql);
+  return find_by_sql($sql); // Changed to use find_by_sql
+}
+/*--------------------------------------------------------------*/
+/* Function for Get total items sold by date range
+/*--------------------------------------------------------------*/
+/* Function for getting sales data by date range
+/*--------------------------------------------------------------*/
+function get_sales_by_date_range($start_date, $end_date) {
+    global $db;
+    $sql = "SELECT DATE(date) as date, SUM(qty * price) as total_sales
+            FROM sales
+            WHERE DATE(date) BETWEEN '{$db->escape($start_date)}' AND '{$db->escape($end_date)}'
+            GROUP BY DATE(date)
+            ORDER BY DATE(date) ASC";
+    return find_by_sql($sql);
+}
+
+/*--------------------------------------------------------------*/
+/* Function for getting items sold data by date range
+/*--------------------------------------------------------------*/
+function get_items_sold_by_date_range($start_date, $end_date) {
+    global $db;
+    $sql = "SELECT DATE(date) as date, SUM(qty) as total_qty
+            FROM sales
+            WHERE DATE(date) BETWEEN '{$db->escape($start_date)}' AND '{$db->escape($end_date)}'
+            GROUP BY DATE(date)
+            ORDER BY DATE(date) ASC";
+    return find_by_sql($sql);
+}
 
 ?>

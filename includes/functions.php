@@ -129,17 +129,6 @@ function find_category_sales_summary() {
   return find_by_sql($sql);
 }
 
-/*--------------------------------------------------------------*/
-/* Function: Get sales by month
-/*--------------------------------------------------------------*/
-function get_sales_by_month($year) {
-  global $db;
-  $sql = "SELECT MONTH(date) AS month, SUM(qty * price) AS total_sales 
-          FROM sales 
-          WHERE YEAR(date) = '{$db->escape($year)}' 
-          GROUP BY MONTH(date)";
-  return find_by_sql($sql);
-}
 
 /*--------------------------------------------------------------*/
 /* Function: Get items sold by month
