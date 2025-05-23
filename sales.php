@@ -358,7 +358,9 @@
                             <tr>
                                 <th class="text-center">#</th>
                                 <th>Product Name</th>
+                                <th>Category</th>
                                 <th class="text-center">Quantity</th>
+                                <th class="text-center">Unit Price</th>
                                 <th class="text-center">Total</th>
                                 <th class="text-center">Date</th>
                             </tr>
@@ -368,14 +370,13 @@
                             <tr>
                                 <td class="text-center"><?php echo count_id(); ?></td>
                                 <td><?php echo remove_junk($sale['name']); ?></td>
+                                <td><?php echo remove_junk($sale['category']); ?></td>
                                 <td class="text-center"><?php echo (int)$sale['qty']; ?></td>
+                                <td class="text-center">₱<?php echo number_format($sale['price'], 2); ?></td>
                                 <td class="text-center sale-total" 
                                     data-date="<?php echo $sale['date']; ?>" 
-                                    data-amount="<?php echo isset($sale['total']) ? $sale['total'] : ($sale['qty'] * $sale['price']); ?>">
-                                    ₱ <?php 
-                                        $total = isset($sale['total']) ? $sale['total'] : ($sale['qty'] * $sale['price']);
-                                        echo number_format($total, 2);
-                                    ?>
+                                    data-amount="<?php echo $sale['total']; ?>">
+                                    ₱<?php echo number_format($sale['total'], 2); ?>
                                 </td>
                                 <td class="text-center"><?php echo $sale['date']; ?></td>
                             </tr>

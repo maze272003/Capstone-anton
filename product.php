@@ -499,9 +499,14 @@ if (empty($user) || !isset($user['user_level'])) {
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary btn-block">
-                                <i class="fas fa-filter"></i> Filter
-                            </button>
+                            <div class="btn-group w-100">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter"></i> Filter
+                                </button>
+                                <a href="product.php" class="btn btn-secondary" style="background-color: #6c757d; color: white; text-decoration: none;">
+                                    <i class="fas fa-times"></i> Reset
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </form>
