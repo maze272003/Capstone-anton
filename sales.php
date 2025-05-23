@@ -16,7 +16,7 @@
       redirect('index.php', false);
   }
   
-  page_require_level(3);
+  page_require_level(1);
   $sales = find_all_sale();
 ?>
 <!DOCTYPE html>

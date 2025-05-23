@@ -31,13 +31,52 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pdf->SetAuthor('Spring Bullbars');
     $pdf->SetTitle('Sales Report');
     
+    // Remove default header/footer
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
+    
     // Set UTF-8 supporting font
     $pdf->SetFont('dejavusans', '', 10);  // ✅ Supports the ₱ symbol
 
     // Add a landscape page
     $pdf->AddPage();
 
-    // Report title
+    // Add logo
+    $logo_path = 'uploads/img/logo.png';
+    $logo_added = false; // Flag to check if logo was successfully added
+    $logo_height = 0; // Variable to store logo height
+    $logo_y_pos = 10; // Y position of the logo
+
+    if (file_exists($logo_path)) {
+        // Try to add the image directly without conversion
+        try {
+            // Get the dimensions of the logo
+            $img_size = getimagesize($logo_path);
+            if ($img_size !== false) {
+                $img_width = $img_size[0];
+                $img_height = $img_size[1];
+                
+                // Calculate new dimensions to maintain aspect ratio (max width 40mm)
+                $max_width = 40;
+                $ratio = $max_width / $img_width;
+                $new_width = $max_width;
+                $new_height = $img_height * $ratio;
+                
+                // Add logo to top left of the page
+                $pdf->Image($logo_path, 15, $logo_y_pos, $new_width, $new_height, 'PNG');
+                $logo_added = true;
+                $logo_height = $new_height;
+            }
+        } catch (Exception $e) {
+            // If image adding fails, continue without the logo
+            error_log('Failed to add logo to PDF: ' . $e->getMessage());
+        }
+    }
+
+    // Report title with adjusted position to accommodate logo
+    // Set Y position for the title below the logo if added, otherwise at the top margin
+    $title_y_pos = $logo_added ? $logo_y_pos + $logo_height + 5 : 15; // Add 5mm padding below logo
+    $pdf->SetY($title_y_pos);
     $html = '<h2 style="text-align:center;">Spring Bullbars - Sales Report</h2>';
     $html .= "<p style='text-align:center;'><strong>Date Range: </strong> $start_date to $end_date</p>";
 
