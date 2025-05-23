@@ -1,7 +1,15 @@
 <?php   
 $page_title = 'Admin Home Page';   
 require_once('includes/load.php');   
+// Get current user data
+$user = current_user();
 
+// Check user status
+if ($user['status'] === '0') {
+    $session->logout();
+    redirect('index.php', false);
+    exit(); // Ensure no further code is executed
+}
 // Permission check
 page_require_level(2); 
 

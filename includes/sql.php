@@ -205,7 +205,6 @@ function tableExists($table){
             $session->msg("d", "Sorry! you dont have permission to view the page.");
             redirect('home.php', false);
         endif;
-
      }
    /*--------------------------------------------------------------*/
    /* Function for Finding all product name
