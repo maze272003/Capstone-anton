@@ -649,7 +649,7 @@
                 <h2>Welcome Back</h2>
                 <p>Sign in to access your dashboard</p>
             </div>
-            <?php echo display_msg($msg); ?>
+            
             <!-- In the login modal section -->
             <form method="post" action="auth.php">
                 <div class="form-group">
