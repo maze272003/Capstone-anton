@@ -51,6 +51,10 @@ while ($product = $products->fetch_assoc()) {
 
 <?php include_once('layouts/header.php'); ?>
 <style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8f9fa;
+    }
     .category-section {
     scroll-margin-top: 20px; /* Binawasan ang margin para hindi masyadong malayo */
     }
@@ -80,28 +84,91 @@ while ($product = $products->fetch_assoc()) {
         color: white;
         text-decoration: none;
     }
-    .category-nav ul {
-        margin: 0;
-        padding: 0;
+    .category-links {
         display: flex;
-        justify-content: center;
+        overflow-x: auto;
+        padding: 5px 0;
+        scrollbar-width: none;
+        flex-grow: 1;
     }
-    .category-nav li {
-        list-style: none;
-        margin: 0 15px;
+    .category-links::-webkit-scrollbar {
+        display: none;
     }
-    .category-nav a {
+    .category-links a {
+        white-space: nowrap;
         font-size: 14px;
-        padding: 8px 12px;
+        padding: 8px 15px;
+        margin-right: 5px;
         text-decoration: none;
         color: #333;
-        font-weight: bold;
+        font-weight: 600;
+        background: #f5f5f5;
+        border-radius: 20px;
+        transition: all 0.3s ease;
     }
-    .category-nav a:hover {
-        text-decoration: underline;
+    .category-links a:hover {
+        background: #4361ee;
+        color: white;
+    }
+    .category-links a.active {
+        background: #4361ee;
+        color: white;
+    }
+    .nav-right-section {
+        display: flex;
+        align-items: center;
+    }
+    .search-container {
+        display: flex;
+        align-items: center;
+        position: relative;
+        margin-right: 15px;
+    }
+    .search-container input {
+        padding: 8px 15px 8px 35px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        width: 200px;
+        outline: none;
+    }
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        color: #777;
+    }
+    .header-cart {
+        display: flex;
+        align-items: center;
+        background: #4361ee;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .header-cart:hover {
+        background: #3a56d4;
+    }
+    .header-cart i {
+        margin-right: 8px;
+    }
+    .cart-badge {
+        background: #f44336;
+        color: white;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 12px;
+        font-weight: bold;
+        margin-left: 5px;
     }
     .content-wrapper {
-        margin-top: 60px;
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 0 15px;
     }
     .product-image {
         width: 150px;
@@ -431,8 +498,3 @@ function showNotification(message) {
 </script>
 
 <?php include_once('layouts/footer.php'); ?>
-
-
-
-
-

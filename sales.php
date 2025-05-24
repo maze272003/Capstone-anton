@@ -348,7 +348,7 @@
             <div class="card">
                 <div class="card-header">
                     <h3>All Sales Records</h3>
-                    <a href="add_sale.php" class="btn btn-primary">
+                    <a href="add_sale_admin.php" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Add New Sale
                     </a>
                 </div>
