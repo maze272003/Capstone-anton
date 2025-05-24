@@ -650,10 +650,11 @@
                 <p>Sign in to access your dashboard</p>
             </div>
             <?php echo display_msg($msg); ?>
+            <!-- In the login modal section -->
             <form method="post" action="auth.php">
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" class="form-control" name="username" placeholder="Enter your username" required>
+                    <label for="username">Username or Email</label>
+                    <input type="text" class="form-control" name="username" placeholder="Enter your username or email" required>
                 </div>
                 <div class="form-group password-toggle">
                     <label for="password">Password</label>
