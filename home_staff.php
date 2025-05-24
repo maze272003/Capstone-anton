@@ -1,6 +1,6 @@
-<?php
-$page_title = 'Staff Dashboard';
-require_once('includes/load.php');
+<?php  
+$page_title = 'Admin Home Page';   
+require_once('includes/load.php');   
 
 // Permission check
 page_require_level(2);
@@ -222,7 +222,7 @@ try {
         
         .chart-container {
             position: relative;
-            height: 250px; /* Reduced height */
+            height: 250px;
             width: 100%;
         }
         
@@ -450,7 +450,6 @@ try {
                                 <th>Product</th>
                                 <th>Category</th>
                                 <th>Price</th>
-                                <!-- <th>Status</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -459,11 +458,6 @@ try {
                                 <td><?php echo remove_junk(first_character($recent_product['name'])); ?></td>
                                 <td><?php echo remove_junk(first_character($recent_product['categorie'])); ?></td>
                                 <td>₱<?php echo (int)$recent_product['sale_price']; ?></td>
-                                <!-- <td>
-                                    <span class="badge <?php echo ($recent_product['quantity'] > 0) ? 'badge-primary' : 'badge-danger'; ?>">
-                                        <?php echo ($recent_product['quantity'] > 0) ? 'In Stock' : 'Out of Stock'; ?>
-                                    </span>
-                                </td> -->
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
