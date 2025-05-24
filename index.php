@@ -662,7 +662,7 @@
                     <i class="bi bi-eye password-toggle-icon" id="togglePassword"></i>
                 </div>
                 <button type="submit" class="login-btn">Login</button>
-                <a href="#" class="forgot-password">Forgot password?</a>
+                <a href="reset_password.php" class="forgot-password">Forgot password?</a>
             </form>
         </div>
     </div>
