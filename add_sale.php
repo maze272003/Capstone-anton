@@ -1,5 +1,5 @@
 <?php
-$page_title = 'Add Sale';
+$page_title = 'ssAdd Sale';
 require_once('includes/load.php');
 page_require_level(3);
 
