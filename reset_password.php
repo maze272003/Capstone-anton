@@ -309,7 +309,7 @@ $csrf_token = generate_csrf_token();
                 <button type="submit" name="request_otp" class="btn">Send OTP</button>
             </form>
             <div class="back-link">
-                <a href="login.php">Back to Login</a>
+                <a href="index.php">Back to Login</a>
             </div>
         
         <?php elseif ($step === 'verify' && $user_id > 0): ?>

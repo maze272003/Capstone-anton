@@ -1,4 +1,4 @@
-    <?php
+<?php
     $page_title = 'All Users';
     require_once('includes/load.php');
     
@@ -313,7 +313,7 @@
                     <div class="user-profile">
                         <div class="user-info">
                             <div class="name"><?php echo isset($user['name']) ? remove_junk(ucfirst($user['name'])) : 'Guest'; ?></div>
-                            <div class="role"><?php echo isset($user['group_name']) ? remove_junk(ucfirst($user['group_name'])) : 'Admin'; ?></div>
+                            
                         </div>
                         <img src="uploads/users/<?php echo isset($user['image']) ? $user['image'] : 'default.jpg'; ?>" alt="User Image">
                     </div>
