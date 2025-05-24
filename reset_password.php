@@ -5,27 +5,22 @@ ob_start();
 // Load Composer's autoloader
 require 'vendor/autoload.php';
 
-// Import PHPMailer classes
+// // Import PHPMailer classes
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Database configuration
-$db_host = 'localhost';
-$db_user = 'root';
-$db_pass = '';
-$db_name = 'imssb';
-$db = new mysqli($db_host, $db_user, $db_pass, $db_name);
+// // Database configuration
+// $db_host = 'localhost';
+// $db_user = 'root';
+// $db_pass = '';
+// $db_name = 'imssb';
+// $db = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
-if ($db->connect_error) {
-    die("Database connection failed: " . $db->connect_error);
-}
-
-// SMTP Configuration
-$smtp_host = 'smtp.gmail.com';
-$smtp_username = 'jmjonatas4@gmail.com';
-$smtp_password = 'qmob wlus hhoj pwmq';
-$from_email = 'jmjonatas4@gmail.com';
-$from_name = 'ShopSphere';
+// if ($db->connect_error) {
+//     die("Database connection failed: " . $db->connect_error);
+// }
+include('dbconnection.php'); // Include database configuration
+include('smtpconfig.php'); // Include SMTP configuration
 
 // Helper functions
 function sanitize($input) {

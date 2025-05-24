@@ -38,18 +38,18 @@ function send_otp_email($email, $otp) {
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com'; // Use Gmail SMTP
         $mail->SMTPAuth = true;
-        $mail->Username = 'jmjonatas4@gmail.com';
-        $mail->Password = 'qmob wlus hhoj pwmq';
+        $mail->Username = 'warpgate27@gmail.com';
+        $mail->Password = 'kiai dqav srik yqvd';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
         
         // Email content
-        $mail->setFrom('noreply@shopsphere.com', 'ShopSphere');
+        $mail->setFrom('noreply@SpringBullbars.com', 'SpringBullbars');
         $mail->addAddress($email);
         $mail->isHTML(true);
         $mail->Subject = 'Your OTP Verification Code';
         $mail->Body = "
-            <h2>ShopSphere Account Verification</h2>
+            <h2>SpringBullbars Account Verification</h2>
             <p>Your OTP code is: <strong>{$otp}</strong></p>
             <p>This code will expire in 10 minutes.</p>
         ";
@@ -125,7 +125,7 @@ if(isset($_POST['signup'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - ShopSphere</title>
+    <title>Sign Up - SpringBullbars</title>
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Google Fonts -->
@@ -348,7 +348,7 @@ if(isset($_POST['signup'])) {
         
         <div class="signup-header">
             <h2>Create Your Account</h2>
-            <p>Join thousands of businesses using ShopSphere</p>
+            <p>Join thousands of businesses using SpringBullbars</p>
         </div>
         
         <?php echo display_msg($msg); ?>
