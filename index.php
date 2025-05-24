@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShopSphere - E-commerce Management System</title>
+    <title>SpringBullBars</title>
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Google Fonts -->
@@ -543,7 +543,7 @@
     <!-- Header -->
     <header>
         <div class="header-container">
-            <a href="#" class="logo">Shop<span>Sphere</span></a>
+            <a href="#" class="logo">Spring<span>Bullbars</span></a>
             
             <button class="mobile-menu-btn" id="mobileMenuBtn">
                 <i class="bi bi-list"></i>
@@ -576,15 +576,11 @@
     <section class="hero">
         <div class="hero-container">
             <div class="hero-content">
-                <h1 class="hero-title">Power Your <span>E-commerce</span> Business</h1>
-                <p class="hero-subtitle">Streamline your inventory management, track sales in real-time, and grow your business with our comprehensive e-commerce solution designed for modern retailers.</p>
-                <div class="hero-buttons">
-                    <a href="#features" class="btn btn-primary">Explore Features</a>
-                    <a href="#" class="btn btn-outline" id="loginTrigger2">Get Started</a>
-                </div>
+                <h1 class="hero-title">Premium <span>Bullbars</span> Solutions</h1>
+                <p class="hero-subtitle">Enhance your vehicle's protection and style with our high-quality bullbars, designed and manufactured for durability and performance.</p>
             </div>
             <div class="hero-image-container">
-                <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="E-commerce dashboard" class="hero-image">
+                <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Bullbar showcase" class="hero-image">
             </div>
         </div>
     </section>
@@ -592,86 +588,61 @@
     <!-- Features Section -->
     <section class="section" id="features">
         <div class="section-title">
-            <h2>Everything You Need to Succeed</h2>
-            <p>Our platform provides all the tools to manage your online store efficiently</p>
+            <h2>Quality and Innovation</h2>
+            <p>Discover our range of premium bullbars and vehicle protection accessories</p>
         </div>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">
-                    <i class="bi bi-graph-up-arrow"></i>
+                    <i class="bi bi-shield-check"></i>
                 </div>
-                <h3>Sales Analytics</h3>
-                <p>Get real-time insights into your sales performance with beautiful dashboards and detailed reports.</p>
+                <h3>Superior Protection</h3>
+                <p>Engineered for maximum vehicle protection with high-grade materials and robust construction.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">
-                    <i class="bi bi-box-seam"></i>
+                    <i class="bi bi-tools"></i>
                 </div>
-                <h3>Inventory Control</h3>
-                <p>Manage stock levels, set up automatic reordering, and track inventory across multiple locations.</p>
+                <h3>Custom Fitting</h3>
+                <p>Professional installation and custom fitting services for various vehicle makes and models.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">
-                    <i class="bi bi-credit-card"></i>
+                    <i class="bi bi-stars"></i>
                 </div>
-                <h3>Payment Processing</h3>
-                <p>Accept all major payment methods with our secure, integrated payment processing system.</p>
+                <h3>Premium Quality</h3>
+                <p>Australian-made bullbars meeting the highest quality standards and safety regulations.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">
                     <i class="bi bi-truck"></i>
                 </div>
-                <h3>Shipping Integration</h3>
-                <p>Connect with major carriers, print labels, and track shipments all from one platform.</p>
+                <h3>Nationwide Delivery</h3>
+                <p>Fast and reliable delivery services across Australia with professional packaging.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">
-                    <i class="bi bi-people"></i>
+                    <i class="bi bi-gear"></i>
                 </div>
-                <h3>Customer Management</h3>
-                <p>Build customer profiles, track purchase history, and manage loyalty programs.</p>
+                <h3>Expert Support</h3>
+                <p>Technical assistance and after-sales support from our experienced team.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">
-                    <i class="bi bi-phone"></i>
+                    <i class="bi bi-award"></i>
                 </div>
-                <h3>Mobile Ready</h3>
-                <p>Manage your business on the go with our fully responsive mobile interface.</p>
+                <h3>Warranty Backed</h3>
+                <p>Comprehensive warranty coverage for peace of mind with your purchase.</p>
             </div>
         </div>
     </section>
-
-    <!-- Login Modal -->
-    <div class="login-modal" id="loginModal">
-        <div class="login-content">
-            <span class="close-btn" id="closeLogin">&times;</span>
-            <div class="login-header">
-                <h2>Welcome Back</h2>
-                <p>Sign in to access your dashboard</p>
-            </div>
-            <?php echo display_msg($msg); ?>
-            <form method="post" action="auth.php">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" class="form-control" name="username" placeholder="Enter your username" required>
-                </div>
-                <div class="form-group password-toggle">
-                    <label for="password">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
-                    <i class="bi bi-eye password-toggle-icon" id="togglePassword"></i>
-                </div>
-                <button type="submit" class="login-btn">Login</button>
-                <a href="#" class="forgot-password">Forgot password?</a>
-            </form>
-        </div>
-    </div>
 
     <!-- Footer -->
     <footer>
         <div class="footer-container">
             <div class="footer-col">
-                <h3>ShopSphere</h3>
-                <p>Empowering e-commerce businesses with powerful inventory and sales management tools.</p>
+                <h3>SpringBullbars</h3>
+                <p>Leading manufacturer of high-quality bullbars and vehicle protection accessories in Australia.</p>
                 <div class="social-links">
                     <a href="#"><i class="bi bi-facebook"></i></a>
                     <a href="#"><i class="bi bi-twitter"></i></a>

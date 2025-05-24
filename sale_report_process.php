@@ -100,155 +100,19 @@ if (!empty($sales_data)):
       </tbody>
     </table>
 
-    <!-- Export to PDF Buttons -->
-    <div class="dropdown" style="margin-bottom: 20px;">
-      <!-- Change button text to English -->
-      <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        Select Report to Download
-        <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-        <li>
-          <form action="export_pdf.php" method="post" target="_blank">
-            <?php 
-            $today = date('Y-m-d');
-            // Kunin ang data para sa kasalukuyang araw lang
-            $daily_data = [];
-            $daily_grand_total = 0;
-            $daily_total_buying_price = 0;
-
-            foreach ($sales_data as $item) {
-                if (date('Y-m-d', strtotime($item['date'])) === $today) {
-                    $daily_data[] = $item;
-                    $daily_grand_total += $item['total_saleing_price'];
-                    $daily_total_buying_price += ($item['buy_price'] * $item['total_sales']);
-                }
-            }
-            $daily_profit = $daily_grand_total - $daily_total_buying_price;
-
-            // Idagdag ang grand total at profit sa data
-            $daily_summary = [
-                'data' => $daily_data,
-                'grand_total' => $daily_grand_total,
-                'profit' => $daily_profit
-            ];
-            ?>
-            <input type="hidden" name="start_date" value="<?php echo $today; ?>">
-            <input type="hidden" name="end_date" value="<?php echo $today; ?>">
-            <input type="hidden" name="sales_data" value='<?php echo json_encode($daily_summary); ?>'>
-            <input type="hidden" name="report_type" value="daily">
-            <button type="submit" class="btn btn-link">Daily Report</button>
-          </form>
-        </li>
-        <li>
-          <form action="export_pdf.php" method="post" target="_blank">
-            <?php 
-            // Get the start and end dates for the current week
-            $week_start = date('Y-m-d', strtotime('monday this week'));
-            $week_end = date('Y-m-d', strtotime('sunday this week'));
-
-            // Filter data for current week
-            $weekly_data = [];
-            $weekly_grand_total = 0;
-            $weekly_total_buying_price = 0;
-
-            foreach ($sales_data as $item) {
-                $item_date = date('Y-m-d', strtotime($item['date']));
-                if ($item_date >= $week_start && $item_date <= $week_end) {
-                    $weekly_data[] = $item;
-                    $weekly_grand_total += $item['total_saleing_price'];
-                    $weekly_total_buying_price += ($item['buy_price'] * $item['total_sales']);
-                }
-            }
-            $weekly_profit = $weekly_grand_total - $weekly_total_buying_price;
-
-            // Prepare weekly summary
-            $weekly_summary = [
-                'data' => $weekly_data,
-                'grand_total' => $weekly_grand_total,
-                'profit' => $weekly_profit
-            ];
-            ?>
-            <input type="hidden" name="start_date" value="<?php echo $week_start; ?>">
-            <input type="hidden" name="end_date" value="<?php echo $week_end; ?>">
-            <input type="hidden" name="sales_data" value='<?php echo json_encode($weekly_summary); ?>'>
-            <input type="hidden" name="report_type" value="weekly">
-            <button type="submit" class="btn btn-link">Weekly Report</button>
-          </form>
-        </li>
-        <li>
-          <form action="export_pdf.php" method="post" target="_blank">
-            <?php 
-            // Get the start and end dates for the current month
-            $month_start = date('Y-m-01');
-            $month_end = date('Y-m-t');
-
-            // Filter data for current month
-            $monthly_data = [];
-            $monthly_grand_total = 0;
-            $monthly_total_buying_price = 0;
-
-            foreach ($sales_data as $item) {
-                $item_date = date('Y-m-d', strtotime($item['date']));
-                if ($item_date >= $month_start && $item_date <= $month_end) {
-                    $monthly_data[] = $item;
-                    $monthly_grand_total += $item['total_saleing_price'];
-                    $monthly_total_buying_price += ($item['buy_price'] * $item['total_sales']);
-                }
-            }
-            $monthly_profit = $monthly_grand_total - $monthly_total_buying_price;
-
-            // Prepare monthly summary
-            $monthly_summary = [
-                'data' => $monthly_data,
-                'grand_total' => $monthly_grand_total,
-                'profit' => $monthly_profit
-            ];
-            ?>
-            <input type="hidden" name="start_date" value="<?php echo $month_start; ?>">
-            <input type="hidden" name="end_date" value="<?php echo $month_end; ?>">
-            <input type="hidden" name="sales_data" value='<?php echo json_encode($monthly_summary); ?>'>
-            <input type="hidden" name="report_type" value="monthly">
-            <button type="submit" class="btn btn-link">Monthly Report</button>
-          </form>
-        </li>
-        <li>
-          <form action="export_pdf.php" method="post" target="_blank">
-            <?php 
-            // Get the start and end dates for the current year
-            $year_start = date('Y-01-01');
-            $year_end = date('Y-12-31');
-
-            // Filter data for current year
-            $yearly_data = [];
-            $yearly_grand_total = 0;
-            $yearly_total_buying_price = 0;
-
-            foreach ($sales_data as $item) {
-                $item_date = date('Y-m-d', strtotime($item['date']));
-                if ($item_date >= $year_start && $item_date <= $year_end) {
-                    $yearly_data[] = $item;
-                    $yearly_grand_total += $item['total_saleing_price'];
-                    $yearly_total_buying_price += ($item['buy_price'] * $item['total_sales']);
-                }
-            }
-            $yearly_profit = $yearly_grand_total - $yearly_total_buying_price;
-
-            // Prepare yearly summary
-            $yearly_summary = [
-                'data' => $yearly_data,
-                'grand_total' => $yearly_grand_total,
-                'profit' => $yearly_profit
-            ];
-            ?>
-            <input type="hidden" name="start_date" value="<?php echo $year_start; ?>">
-            <input type="hidden" name="end_date" value="<?php echo $year_end; ?>">
-            <input type="hidden" name="sales_data" value='<?php echo json_encode($yearly_summary); ?>'>
-            <input type="hidden" name="report_type" value="yearly">
-            <button type="submit" class="btn btn-link">Yearly Report</button>
-          </form>
-        </li>
-      </ul>
+    <!-- Single Export to PDF Button -->
+    <div style="margin-bottom: 20px;">
+      <form action="export_pdf.php" method="post" target="_blank">
+        <input type="hidden" name="start_date" value="<?php echo $start_date; ?>">
+        <input type="hidden" name="end_date" value="<?php echo $end_date; ?>">
+        <input type="hidden" name="sales_data" value='<?php echo json_encode([
+            'data' => $sales_data,
+            'grand_total' => $grand_total,
+            'profit' => $profit
+        ]); ?>'>
+        <input type="hidden" name="report_type" value="custom">
+        <button type="submit" class="btn btn-primary">Download Report</button>
+      </form>
     </div>
   </div>
 
