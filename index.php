@@ -578,6 +578,10 @@
             <div class="hero-content">
                 <h1 class="hero-title">Premium <span>Bullbars</span> Solutions</h1>
                 <p class="hero-subtitle">Enhance your vehicle's protection and style with our high-quality bullbars, designed and manufactured for durability and performance.</p>
+                <div class="hero-buttons">
+                    <a href="#features" class="btn btn-primary">Our Products</a>
+                    <a href="#" class="btn btn-outline" id="loginTrigger2">Contact Us</a>
+                </div>
             </div>
             <div class="hero-image-container">
                 <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Bullbar showcase" class="hero-image">
@@ -636,6 +640,31 @@
             </div>
         </div>
     </section>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-content">
+            <span class="close-btn" id="closeLogin">&times;</span>
+            <div class="login-header">
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your dashboard</p>
+            </div>
+            <?php echo display_msg($msg); ?>
+            <form method="post" action="auth.php">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" name="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group password-toggle">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                    <i class="bi bi-eye password-toggle-icon" id="togglePassword"></i>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </form>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer>
