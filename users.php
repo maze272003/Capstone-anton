@@ -336,6 +336,7 @@
                                     <th>#</th>
                                     <th>Name</th>
                                     <th>Username</th>
+                                    <th>Email</th>
                                     <th>Role</th>
                                     <th>Status</th>
                                     <th>Last Login</th>
@@ -348,6 +349,7 @@
                                     <td><?php echo count_id();?></td>
                                     <td><?php echo remove_junk(ucwords($a_user['name']))?></td>
                                     <td><?php echo remove_junk(ucwords($a_user['username']))?></td>
+                                    <td><?php echo remove_junk(strtolower($a_user['email']))?></td>
                                     <td><?php echo remove_junk(ucwords($a_user['group_name']))?></td>
                                     <td>
                                         <?php if($a_user['status'] === '1'): ?>
