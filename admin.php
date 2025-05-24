@@ -154,7 +154,7 @@ if ($filter == 'year') {
     }
     foreach ($items_sold_by_hour as $item) {
         $hour_index = (int)$item['hour'];
-        $item_sold_values[$hour_index] = (int)$item['total_qty'];
+        $item_sold_values[$hour_index] = (int)($item['total_qty'] ?? 0); // Added null coalescing operator
     }
 } elseif ($filter == 'custom') {
     if (empty($end_date)) {
@@ -652,7 +652,7 @@ if ($filter == 'year') {
             </div>
             
             <!-- Inventory Value -->
-            <div class="inventory-card">
+            <div class="inventory-card" style="margin-bottom: 30px;">
                 <h3><i class="fas fa-warehouse"></i> Inventory Value</h3>
                 <div class="inventory-value">₱<?php echo number_format($inventory_value, 2); ?></div>
             </div>
@@ -715,7 +715,7 @@ if ($filter == 'year') {
                     <div class="card-header">
                         <h3><i class="fas fa-star"></i> Top Selling Products</h3>
                     </div>
-                    <div class="card-body">
+                        <div class="card-body">
                         <div class="table-container">
                             <table class="table">
                                 <thead>

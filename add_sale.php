@@ -56,19 +56,33 @@ while ($product = $products->fetch_assoc()) {
         background-color: #f8f9fa;
     }
     .category-section {
-        scroll-margin-top: 100px;
-        padding: 20px 0;
+    scroll-margin-top: 20px; /* Binawasan ang margin para hindi masyadong malayo */
     }
-    .category-nav-container {
-        position: sticky;
-        top: 60px;
-        z-index: 1000;
-        background: white;
-        padding: 10px 15px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    .category-nav {
+        width: 100%;
+        background: #f8f9fa;
+        padding: 15px 0;
+        margin-bottom: 20px;
+        box-shadow: 0px 2px 5px rgba(41, 90, 174, 0.1);
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .category-nav a {
+        font-size: 14px;
+        padding: 8px 15px;
+        text-decoration: none;
+        color: #333;
+        font-weight: bold;
+        background: white;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+    .category-nav a:hover {
+        background: #4361ee;
+        color: white;
+        text-decoration: none;
     }
     .category-links {
         display: flex;
@@ -160,65 +174,10 @@ while ($product = $products->fetch_assoc()) {
         width: 150px;
         height: 150px;
         object-fit: cover;
-        border-radius: 8px;
-    }
-    .panel {
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
-        height: 100%;
-        border: none;
-    }
-    .panel:hover {
-        transform: translateY(-5px);
-    }
-    .panel-heading {
-        background: #4361ee;
-        color: white;
-        padding: 12px 15px;
-        font-size: 16px;
-        border: none;
-    }
-    .panel-body {
-        padding: 15px;
-        text-align: center;
-        background: white;
-    }
-    .btn-group {
-        display: flex;
-        gap: 5px;
-        margin-top: 10px;
-    }
-    .btn {
-        border-radius: 20px;
-        padding: 8px 12px;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        flex: 1;
-        border: none;
-    }
-    .btn-primary {
-        background: #4361ee;
-    }
-    .btn-primary:hover {
-        background: #3a56d4;
-    }
-    .btn-success {
-        background: #4caf50;
-    }
-    .btn-success:hover {
-        background: #43a047;
-    }
-    .btn-danger {
-        background: #f44336;
-    }
-    .btn-secondary {
-        background: #6c757d;
     }
     /* Cart Modal Styles */
     .cart-item {
+        
         display: grid;
         grid-template-columns: 80px 1fr auto;
         align-items: center;
@@ -277,62 +236,30 @@ while ($product = $products->fetch_assoc()) {
         justify-content: space-between;
         align-items: center;
         padding: 15px;
-        border-top: 1px solid #eee;
     }
-    .section-title {
-        font-size: 22px;
-        font-weight: 600;
-        margin-bottom: 20px;
-        color: #333;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #4361ee;
+    .cart-total {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-right: 15px;
     }
-    .no-products {
-        text-align: center;
-        padding: 20px;
-        color: #777;
-        font-style: italic;
+    #cartModal .modal-dialog {
+        max-width: 500px;
     }
-    @media (max-width: 768px) {
-        .category-nav-container {
-            flex-direction: column;
-        }
-        .nav-right-section {
-            width: 100%;
-            margin-top: 10px;
-        }
-        .search-container {
-            margin-right: 0;
-            margin-bottom: 10px;
-            width: 100%;
-        }
-        .search-container input {
-            width: 100%;
-        }
-        .header-cart {
-            width: 100%;
-            justify-content: center;
-        }
+    #cartModal .modal-body {
+        max-height: 400px;
+        overflow-y: auto;
     }
 </style>
 
-<div class="category-nav-container">
-    <div class="category-links" id="categoryLinks">
-        <?php foreach ($categorized_products as $category => $products): ?>
-            <a href="#<?php echo htmlspecialchars($category); ?>"><?php echo htmlspecialchars($category); ?></a>
-        <?php endforeach; ?>
-    </div>
-    
-    <div class="nav-right-section">
-        <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="productSearch" placeholder="Search products..." onkeyup="searchProducts()">
-        </div>
-        <div class="header-cart" onclick="showCart()">
-            <i class="fas fa-shopping-cart"></i>
-            Cart <span class="cart-badge" id="cartCount">0</span>
-        </div>
-    </div>
+<div class="category-nav text-center">
+    <?php foreach ($categorized_products as $category => $products): ?>
+        <a href="#<?php echo htmlspecialchars($category); ?>"><?php echo htmlspecialchars($category); ?></a>
+    <?php endforeach; ?>
+</div>
+<!-- Cart Icon -->
+<div class="cart-icon" onclick="showCart()">
+    <i class="fas fa-shopping-cart"></i>
+    <span class="cart-badge" id="cartCount">0</span>
 </div>
 
 <!-- Cart Modal -->
@@ -361,43 +288,37 @@ while ($product = $products->fetch_assoc()) {
     </div>
 </div>
 
-<!-- Main Content -->
-<div class="content-wrapper">
+<!-- Update Product Panel -->
+<div class="panel-body">
     <?php foreach ($categorized_products as $category => $products): ?>
         <div id="<?php echo htmlspecialchars($category); ?>" class="category-section">
-            <h3 class="section-title"><?php echo htmlspecialchars($category); ?></h3>
+            <h3><?php echo htmlspecialchars($category); ?></h3>
             <div class="row">
-                <?php if (empty($products)): ?>
-                    <div class="col-12">
-                        <div class="no-products">No products available in this category</div>
-                    </div>
-                <?php else: ?>
-                    <?php foreach ($products as $product): ?>
-                        <div class="col-md-4 col-sm-6 mb-4">
-                            <div class="panel panel-default">
-                                <div class="panel-heading">
-                                    <strong><?php echo remove_junk($product['name']); ?></strong>
-                                </div>
-                                <div class="panel-body">
-                                    <?php if (!empty($product['file_name'])): ?>
-                                        <img src="uploads/products/<?php echo $product['file_name']; ?>" alt="Product Image" class="img-thumbnail product-image">
-                                    <?php else: ?>
-                                        <img src="uploads/no_image.png" alt="No Image" class="img-thumbnail product-image">
-                                    <?php endif; ?>
-                                    <p style="margin: 15px 0; font-size: 18px; font-weight: bold;">Price: ₱<?php echo remove_junk($product['sale_price']); ?></p>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-primary" onclick="addToCart('<?php echo $product['id']; ?>', '<?php echo remove_junk($product['name']); ?>', <?php echo $product['sale_price']; ?>, '<?php echo !empty($product['file_name']) ? $product['file_name'] : 'no_image.png'; ?>')">
-                                            <i class="fas fa-cart-plus"></i> Add
-                                        </button>
-                                        <button type="button" class="btn btn-success" onclick="buyNow('<?php echo $product['id']; ?>', '<?php echo remove_junk($product['name']); ?>', <?php echo $product['sale_price']; ?>)">
-                                            <i class="fas fa-shopping-bag"></i> Buy
-                                        </button>
-                                    </div>
+                <?php foreach ($products as $product): ?>
+                    <div class="col-md-4 text-center" style="margin-bottom: 20px;">
+                        <div class="panel panel-info">
+                            <div class="panel-heading">
+                                <strong><?php echo remove_junk($product['name']); ?></strong>
+                            </div>
+                            <div class="panel-body">
+                                <?php if (!empty($product['file_name'])): ?>
+                                    <img src="uploads/products/<?php echo $product['file_name']; ?>" alt="Product Image" class="img-thumbnail product-image">
+                                <?php else: ?>
+                                    <img src="uploads/no_image.png" alt="No Image" class="img-thumbnail product-image">
+                                <?php endif; ?>
+                                <p>Price: ₱<?php echo remove_junk($product['sale_price']); ?></p>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-primary" onclick="addToCart('<?php echo $product['id']; ?>', '<?php echo remove_junk($product['name']); ?>', <?php echo $product['sale_price']; ?>, '<?php echo !empty($product['file_name']) ? $product['file_name'] : 'no_image.png'; ?>')">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </button>
+                                    <button type="button" class="btn btn-success" onclick="buyNow('<?php echo $product['id']; ?>', '<?php echo remove_junk($product['name']); ?>', <?php echo $product['sale_price']; ?>)">
+                                        <i class="fas fa-shopping-bag"></i> Buy Now
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
     <?php endforeach; ?>
@@ -432,7 +353,7 @@ function showCart() {
     let total = 0;
     
     if (cart.length === 0) {
-        cartHtml = '<p class="text-center">Your cart is empty</p>';
+        cartHtml = '<p class="text-center">Walang laman ang iyong cart</p>';
     } else {
         cart.forEach((item, index) => {
             const itemTotal = item.price * item.quantity;
@@ -481,7 +402,7 @@ function removeItem(index) {
 }
 
 function clearCart() {
-    if (confirm('Are you sure you want to clear your cart?')) {
+    if (confirm('Sigurado ka bang gusto mong i-clear ang cart?')) {
         cart = [];
         updateCartCount();
         showCart();
@@ -490,17 +411,17 @@ function clearCart() {
 
 function checkoutCart() {
     if (cart.length === 0) {
-        alert('Your cart is empty!');
+        alert('Walang laman ang iyong cart!');
         return;
     }
     
-    if (confirm('Are you sure you want to checkout all items in your cart?')) {
-        // Create a single form for all items
+    if (confirm('Sigurado ka bang gusto mong i-checkout ang lahat ng items sa cart?')) {
+        // Gumawa ng iisang form para sa lahat ng items
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = 'add_sale.php';
         
-        // Add each item as an array to the form
+        // Idagdag ang bawat item bilang array sa form
         cart.forEach((item, index) => {
             const fields = {
                 [`s_id[${index}]`]: item.id,
@@ -517,98 +438,45 @@ function checkoutCart() {
             }
         });
         
-        // Add the confirm_sale field
+        // Idagdag ang confirm_sale field
         const confirmInput = document.createElement('input');
         confirmInput.type = 'hidden';
         confirmInput.name = 'confirm_sale';
         confirmInput.value = 'true';
         form.appendChild(confirmInput);
         
-        // Submit the form and clear the cart
+        // I-submit ang form at i-clear ang cart
         document.body.appendChild(form);
         form.submit();
         
-        // Clear the cart and show success message
+        // I-clear ang cart at ipakita ang success message
         cart = [];
         updateCartCount();
         $('#cartModal').modal('hide');
-        showNotification('Products successfully checked out!');
+        showNotification('Matagumpay na na-checkout ang mga produkto!');
     }
 }
 
-function buyNow(id, name, price) {
-    // Clear cart first
-    cart = [];
-    // Add the single item
-    addToCart(id, name, price, '');
-    // Immediately checkout
-    checkoutCart();
+function addSelectedToCart() {
+    const selectedProducts = document.querySelectorAll('.product-checkbox:checked');
+    if (selectedProducts.length === 0) {
+        alert('Walang napiling produkto!');
+        return;
+    }
+    
+    selectedProducts.forEach(checkbox => {
+        const productData = JSON.parse(checkbox.value);
+        addToCart(productData.id, productData.name, productData.price, productData.image);
+        checkbox.checked = false;
+    });
+    
+    showNotification(`${selectedProducts.length} (na) produkto ang idinagdag sa cart!`);
 }
 
-function searchProducts() {
-    const input = document.getElementById('productSearch');
-    const filter = input.value.toUpperCase();
-    const categories = document.querySelectorAll('.category-section');
-    
-    categories.forEach(category => {
-        const products = category.querySelectorAll('.panel-heading strong');
-        let hasVisibleProducts = false;
-        
-        products.forEach(product => {
-            const text = product.textContent || product.innerText;
-            const productCard = product.closest('.col-md-4');
-            
-            if (text.toUpperCase().indexOf(filter) > -1) {
-                productCard.style.display = "";
-                hasVisibleProducts = true;
-            } else {
-                productCard.style.display = "none";
-            }
-        });
-        
-        // Show/hide category based on visible products
-        category.style.display = hasVisibleProducts ? "" : "none";
-    });
+function selectAll(checked) {
+    const checkboxes = document.querySelectorAll('.product-checkbox');
+    checkboxes.forEach(checkbox => checkbox.checked = checked);
 }
-
-// Highlight active category in navigation when scrolling
-window.addEventListener('scroll', function() {
-    const categoryLinks = document.querySelectorAll('.category-links a');
-    const scrollPosition = window.scrollY + 100;
-    
-    document.querySelectorAll('.category-section').forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.offsetHeight;
-        
-        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-            const categoryId = section.getAttribute('id');
-            
-            categoryLinks.forEach(link => {
-                if (link.getAttribute('href') === `#${categoryId}`) {
-                    link.classList.add('active');
-                } else {
-                    link.classList.remove('active');
-                }
-            });
-        }
-    });
-});
-
-// Smooth scroll for category links
-document.querySelectorAll('.category-links a').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href');
-        const targetElement = document.querySelector(targetId);
-        
-        if (targetElement) {
-            window.scrollTo({
-                top: targetElement.offsetTop - 80,
-                behavior: 'smooth'
-            });
-        }
-    });
-});
 
 function showNotification(message) {
     const notification = document.createElement('div');

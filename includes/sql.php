@@ -287,10 +287,14 @@ function tableExists($table){
  /*--------------------------------------------------------------*/
  function find_all_sale(){
    global $db;
-   $sql  = "SELECT s.id,s.qty,s.price,s.date,p.name";
-   $sql .= " FROM sales s";
-   $sql .= " LEFT JOIN products p ON s.product_id = p.id";
-   $sql .= " ORDER BY s.date DESC";
+   $sql  = "SELECT s.id,s.qty,s.price,s.date,p.name,
+            (s.qty * s.price) as total,
+            p.sale_price,p.buy_price,
+            c.name as category
+            FROM sales s
+            LEFT JOIN products p ON s.product_id = p.id
+            LEFT JOIN categories c ON p.categorie_id = c.id
+            ORDER BY s.date DESC";
    return find_by_sql($sql);
  }
  /*--------------------------------------------------------------*/
