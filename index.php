@@ -9,6 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SpringBullBars</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Google Fonts -->
@@ -536,6 +537,22 @@
             .hero-title {
                 font-size: 2.5rem;
             }
+
+        }
+        .form-group.password-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        .form-group.password-toggle input[type="password"] {
+            flex-grow: 1; /* Allow the input field to take up available space */
+            padding-right: 30px; /* Add padding to make space for the icon */
+        }
+
+        .password-toggle-icon {
+            margin-left: -25px; /* Adjust the margin to position the icon */
+            cursor: pointer;
+            z-index: 2; /* Ensure the icon is above the input field */
         }
     </style>
 </head>
@@ -660,6 +677,8 @@
                     <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
                     <i class="bi bi-eye password-toggle-icon" id="togglePassword"></i>
                 </div>
+                <!-- Google reCAPTCHA widget -->
+                <div class="g-recaptcha mt-3 mb-3" data-sitekey="6Led0EcrAAAAAFjBQ1kIizLhutuIH4TCYh9oNQlO"></div>
                 <button type="submit" class="login-btn">Login</button>
                 <a href="#" class="forgot-password">Forgot password?</a>
             </form>
