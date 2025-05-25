@@ -595,7 +595,7 @@ if ($filter == 'year') {
             <!-- Top Bar -->
             <div class="top-bar">
                 <div class="page-title">
-                    <h1><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h1>
+                    <h1><i class="fas fa-tachometer-alt"></i>Dashboard Overview</h1>
                 </div>
                 <div class="user-profile">
                     <div class="user-info">
