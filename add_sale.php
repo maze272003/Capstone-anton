@@ -186,6 +186,9 @@ while ($product = $products->fetch_assoc()) {
             position: sticky;
             top: 0;
             z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .category-nav {
@@ -359,24 +362,57 @@ while ($product = $products->fetch_assoc()) {
             background-color: #3a8b8f;
         }
         
-        /* Cart Modal */
+        /* Custom Modal Styles */
+        #cartModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
         .modal-content {
+            background: white;
             border-radius: 10px;
-            overflow: hidden;
-            border: none;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
             box-shadow: 0 5px 30px rgba(0,0,0,0.2);
         }
         
         .modal-header {
             background: var(--primary);
             color: white;
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h4 {
+            margin: 0;
+        }
+        
+        .close-btn {
+            background: none;
             border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
         }
         
         .modal-body {
-            padding: 0;
-            max-height: 400px;
             overflow-y: auto;
+            flex-grow: 1;
+            padding: 0;
         }
         
         .cart-item {
@@ -414,6 +450,7 @@ while ($product = $products->fetch_assoc()) {
             display: flex;
             align-items: center;
             gap: 8px;
+            margin-top: 5px;
         }
         
         .cart-quantity {
@@ -425,22 +462,17 @@ while ($product = $products->fetch_assoc()) {
         }
         
         .modal-footer {
+            padding: 15px;
+            border-top: 1px solid var(--light-gray);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
-            border-top: 1px solid var(--light-gray);
         }
         
         .cart-total {
             font-size: 18px;
             font-weight: 600;
             color: var(--primary);
-        }
-        
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
         }
         
         /* Responsive Design */
@@ -468,23 +500,26 @@ while ($product = $products->fetch_assoc()) {
                 margin-left: 70px;
             }
             
-            .search-cart-container {
+            .category-nav-container {
                 flex-direction: column;
+                gap: 15px;
+            }
+            
+            .search-cart-container {
                 width: 100%;
-                gap: 10px;
+                justify-content: flex-end;
             }
             
             .search-box input {
-                width: 100%;
-            }
-            
-            .cart-btn {
-                width: 100%;
-                justify-content: center;
+                width: 180px;
             }
             
             .product-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
             }
         }
     </style>
@@ -562,24 +597,24 @@ while ($product = $products->fetch_assoc()) {
             </div>
 
             <!-- Cart Modal -->
-            <div id="cartModal" class="modal fade" role="dialog">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title">Shopping Cart</h4>
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <div id="cartModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4>Shopping Cart</h4>
+                        <button class="close-btn" onclick="hideCart()">&times;</button>
+                    </div>
+                    <div class="modal-body" id="cartItems">
+                        <!-- Cart items will be displayed here -->
+                    </div>
+                    <div class="modal-footer">
+                        <div class="cart-total">
+                            Total: ₱<span id="cartTotal">0.00</span>
                         </div>
-                        <div class="modal-body" id="cartItems">
-                            <!-- Cart items will be displayed here -->
-                        </div>
-                        <div class="modal-footer">
-                            <div class="cart-total">
-                                Total: ₱<span id="cartTotal">0.00</span>
-                            </div>
-                            <button type="button" class="btn btn-danger" onclick="clearCart()">
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-danger" onclick="clearCart()">
                                 <i class="fas fa-trash"></i> Clear
                             </button>
-                            <button type="button" class="btn btn-success" onclick="checkoutCart()">
+                            <button class="btn btn-success" onclick="checkoutCart()">
                                 <i class="fas fa-check"></i> Checkout
                             </button>
                         </div>
@@ -658,12 +693,12 @@ while ($product = $products->fetch_assoc()) {
                             <div class="cart-item-name">${item.name}</div>
                             <div class="cart-item-price">₱${item.price.toFixed(2)}</div>
                             <div class="cart-quantity-controls">
-                                <button class="btn btn-sm" style="background: var(--light-gray);" onclick="updateQuantity(${index}, ${item.quantity - 1})">-</button>
+                                <button style="background: var(--light-gray); border: none; border-radius: 4px; width: 25px; height: 25px; cursor: pointer;" onclick="updateQuantity(${index}, ${item.quantity - 1})">-</button>
                                 <input type="number" class="cart-quantity" value="${item.quantity}" 
                                        onchange="updateQuantity(${index}, this.value)" min="1">
-                                <button class="btn btn-sm" style="background: var(--light-gray);" onclick="updateQuantity(${index}, ${item.quantity + 1})">+</button>
-                                <button class="btn btn-sm btn-danger" onclick="removeItem(${index})">
-                                    <i class="fas fa-trash"></i>
+                                <button style="background: var(--light-gray); border: none; border-radius: 4px; width: 25px; height: 25px; cursor: pointer;" onclick="updateQuantity(${index}, ${item.quantity + 1})">+</button>
+                                <button style="background: var(--danger); color: white; border: none; border-radius: 4px; width: 25px; height: 25px; cursor: pointer;" onclick="removeItem(${index})">
+                                    <i class="fas fa-trash" style="font-size: 12px;"></i>
                                 </button>
                             </div>
                         </div>
@@ -674,7 +709,11 @@ while ($product = $products->fetch_assoc()) {
         
         document.getElementById('cartItems').innerHTML = cartHtml;
         document.getElementById('cartTotal').textContent = total.toFixed(2);
-        $('#cartModal').modal('show');
+        document.getElementById('cartModal').style.display = 'flex';
+    }
+
+    function hideCart() {
+        document.getElementById('cartModal').style.display = 'none';
     }
 
     function updateQuantity(index, qty) {
@@ -745,7 +784,7 @@ while ($product = $products->fetch_assoc()) {
             // Clear the cart and show success message
             cart = [];
             updateCartCount();
-            $('#cartModal').modal('hide');
+            hideCart();
             showNotification('Products successfully checked out!');
         }
     }
