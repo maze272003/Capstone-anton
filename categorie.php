@@ -60,6 +60,7 @@ $all_categories = find_by_sql($sql);
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
   <title>Categories</title>
@@ -438,51 +439,150 @@ body {
     color: var(--primary);
     margin-top: 10px;
 }
+
+/* Enhanced Modal Styles */
 .modal-dialog {
-    margin-top: 50px; /* Adjust this value to control distance from the top */
-    transform: translate(0, 0) !important; /* Override Bootstrap's default transform */
+    margin-top: 50px;
+    transform: translate(0, 0) !important;
 }
+
+.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 1rem);
+}
+
 .modal-backdrop {
    background-color: rgba(0, 0, 0, 0.7);
 }
+
 .modal-content {
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    border: none;
+    width: 500px;
+    height: 500px;
+    margin: auto;
 }
 
 .modal-header {
-    background-color: var(--primary);
+    background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
     color: white;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
     border-bottom: none;
+    padding: 20px;
+    height: 80px;
 }
 
 .modal-header .close {
     color: white;
     opacity: 1;
+    text-shadow: none;
+    font-size: 24px;
 }
 
 .modal-title {
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    font-size: 20px;
 }
 
 .modal-body {
-    padding: 20px;
+    padding: 30px;
+    height: calc(500px - 160px);
+    overflow-y: auto;
 }
 
 .modal-footer {
-    border-top: 1px solid #e5e5e5;
-    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    padding: 20px;
+    height: 80px;
 }
 
-.modal-footer .btn {
-    margin-left: 10px;
+.input-group-text {
+    border-right: none;
+    background-color: #f8f9fa !important;
+    border-radius: 6px 0 0 6px !important;
+    height: 50px;
+    width: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Adjust form control styling within modal if needed */
-.modal-body .form-control {
-    width: 100%;
+.form-control {
+    height: 50px;
+    font-size: 16px;
+    padding: 15px;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.2);
+    border-color: #4361ee;
+}
+
+.btn-light {
+    padding: 12px 25px;
+    font-size: 16px;
+}
+
+.btn-primary {
+    padding: 12px 25px;
+    font-size: 16px;
+}
+
+.btn-light:hover {
+    background-color: #f1f3f9;
+}
+
+/* Animation for modal appearance */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out, opacity 0.3s ease;
+    transform: translate(0, -20px);
+}
+
+.modal.show .modal-dialog {
+    transform: translate(0, 0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .filter-group label {
+        min-width: 100px;
+    }
+    
+    .date-range-selector {
+        flex-wrap: wrap;
+    }
+    
+    .modal-content {
+        width: 95%;
+        height: auto;
+        min-height: 500px;
+    }
+    
+    .modal-header,
+    .modal-footer {
+        height: auto;
+        padding: 15px;
+    }
+    
+    .modal-body {
+        height: auto;
+        padding: 20px;
+    }
 }
 </style>
 <body>
@@ -506,7 +606,7 @@ body {
 
       <?php echo display_msg($msg); ?>
 
-      <!-- Add Search and Filter here later -->
+      <!-- Search and Filter Section -->
       <div class="filter-container">
           <form action="categorie.php" method="GET" class="filter-form">
               <div class="filter-group" style="flex-grow: 1;">
@@ -530,9 +630,9 @@ body {
       <div class="card">
           <div class="card-header">
               <h3>Category List</h3>
-              <a href="#" class="btn btn-primary btn-sm" title="Add Category" data-toggle="modal" data-target="#addCategoryModal">
+              <button class="btn btn-primary btn-sm" title="Add Category" data-toggle="modal" data-target="#addCategoryModal">
                 <span class="fas fa-plus"></span>
-              </a>
+              </button>
           </div>
           <div class="card-body">
               <div class="table-container">
@@ -550,7 +650,6 @@ body {
                               <td><?php echo remove_junk(ucfirst($category['id'])); ?></td>
                               <td><?php echo remove_junk(ucfirst($category['name'])); ?></td>
                               <td>
-                                  <!-- Add Edit and Delete buttons here later -->
                                   <a href="edit_categorie.php?id=<?php echo (int)$category['id'];?>" class="btn btn-info btn-xs"  title="Edit" data-toggle="tooltip">
                                     <span class="fas fa-pencil-alt"></span>
                                   </a>
@@ -566,24 +665,53 @@ body {
           </div>
       </div>
 
-      <!-- Add Category Modal -->
+      <!-- Enhanced Add Category Modal -->
       <div class="modal fade" id="addCategoryModal" tabindex="-1" role="dialog" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              <h4 class="modal-title" id="addCategoryModalLabel">Add New Category</h4>
+              <h5 class="modal-title" id="addCategoryModalLabel">
+                <i class="fas fa-plus-circle mr-2"></i>Add New Category
+              </h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
             </div>
             <form action="categorie.php" method="post">
               <div class="modal-body">
                 <div class="form-group">
-                  <label for="category-name">Category Name</label>
-                  <input type="text" class="form-control" id="category-name" name="categorie-name" placeholder="Enter category name" required>
+                  <label for="category-name">
+                    <i class="fas fa-tag mr-2"></i>Category Name
+                  </label>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text">
+                        <i class="fas fa-folder"></i>
+                      </span>
+                    </div>
+                    <input type="text" class="form-control" id="category-name" name="categorie-name" 
+                           placeholder="e.g. Electronics, Clothing, etc." required>
+                  </div>
+                  <small class="form-text text-muted">
+                    Enter a descriptive name for your new category
+                  </small>
+                </div>
+                <div style="margin-top: 30px;">
+                  <div class="form-group">
+                    <label>
+                      <i class="fas fa-info-circle mr-2"></i>Additional Information
+                    </label>
+                    <textarea class="form-control" rows="3" placeholder="Optional description or notes"></textarea>
+                  </div>
                 </div>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="submit" name="add_cat" class="btn btn-primary">Add Category</button> <!-- <-- Changed name to 'add_cat' -->
+                <button type="button" class="btn btn-light" data-dismiss="modal">
+                  <i class="fas fa-times mr-2"></i>Cancel
+                </button>
+                <button type="submit" name="add_cat" class="btn btn-primary">
+                  <i class="fas fa-check mr-2"></i>Add Category
+                </button>
               </div>
             </form>
           </div>
@@ -592,6 +720,17 @@ body {
   </div>
   </div>
 
-
+  <script>
+  $(document).ready(function(){
+    // Initialize tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Ensure modal is properly centered when shown
+    $('#addCategoryModal').on('show.bs.modal', function () {
+      // This ensures the modal is properly centered
+      $(this).find('.modal-dialog').addClass('modal-dialog-centered');
+    });
+  });
+  </script>
 </body>
 </html>
