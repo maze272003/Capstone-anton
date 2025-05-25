@@ -280,57 +280,80 @@ while ($product = $products->fetch_assoc()) {
             margin-left: 8px;
         }
         
-        /* Product Grid */
+        /* Product Grid - Shopee Style */
         .product-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
             margin-bottom: 30px;
         }
         
         .product-card {
             background: white;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
             transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
         }
         
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .product-image-container {
+            position: relative;
+            padding-top: 100%; /* 1:1 Aspect Ratio */
+            overflow: hidden;
         }
         
         .product-image {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 180px;
+            height: 100%;
             object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 15px;
+            transition: transform 0.3s;
+        }
+        
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
+        
+        .product-info {
+            padding: 12px;
         }
         
         .product-name {
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-weight: 500;
+            margin-bottom: 8px;
             color: var(--dark);
+            font-size: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 40px;
         }
         
         .product-price {
             color: var(--primary);
             font-weight: 600;
-            font-size: 18px;
-            margin-bottom: 15px;
+            font-size: 16px;
+            margin-bottom: 10px;
         }
         
         .product-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
         
         .btn {
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
             border: none;
@@ -359,91 +382,185 @@ while ($product = $products->fetch_assoc()) {
             background-color: #3a8b8f;
         }
         
-        /* Cart Modal */
-        .modal-content {
-            border-radius: 10px;
-            overflow: hidden;
-            border: none;
-            box-shadow: 0 5px 30px rgba(0,0,0,0.2);
+        /* Floating Cart Sidebar */
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
         }
         
-        .modal-header {
+        .cart-sidebar.active {
+            right: 0;
+        }
+        
+        .cart-header {
+            padding: 20px;
             background: var(--primary);
             color: white;
-            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .modal-body {
-            padding: 0;
-            max-height: 400px;
+        .cart-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .close-cart {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .cart-body {
+            flex: 1;
             overflow-y: auto;
+            padding: 15px;
+        }
+        
+        .cart-empty {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--gray);
         }
         
         .cart-item {
-            display: grid;
-            grid-template-columns: 80px 1fr auto;
-            align-items: center;
-            padding: 15px;
+            display: flex;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
             border-bottom: 1px solid var(--light-gray);
-            gap: 15px;
         }
         
         .cart-item-image {
             width: 80px;
             height: 80px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 4px;
+            margin-right: 15px;
         }
         
         .cart-item-details {
-            display: flex;
-            flex-direction: column;
+            flex: 1;
         }
         
         .cart-item-name {
-            font-weight: 600;
+            font-weight: 500;
             margin-bottom: 5px;
+            font-size: 14px;
         }
         
         .cart-item-price {
             color: var(--primary);
-            font-weight: 500;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
         }
         
-        .cart-quantity-controls {
+        .cart-item-controls {
             display: flex;
             align-items: center;
-            gap: 8px;
         }
         
-        .cart-quantity {
-            width: 50px;
-            text-align: center;
-            padding: 5px;
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            background: var(--light-gray);
+            border: none;
             border-radius: 4px;
-            border: 1px solid var(--light-gray);
+            cursor: pointer;
+            font-size: 16px;
         }
         
-        .modal-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .quantity-input {
+            width: 40px;
+            height: 30px;
+            text-align: center;
+            margin: 0 5px;
+            border: 1px solid var(--light-gray);
+            border-radius: 4px;
+        }
+        
+        .remove-item {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .cart-footer {
             padding: 15px;
             border-top: 1px solid var(--light-gray);
+            background: white;
+        }
+        
+        .cart-summary {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 16px;
         }
         
         .cart-total {
-            font-size: 18px;
             font-weight: 600;
             color: var(--primary);
         }
         
-        .btn-danger {
-            background-color: var(--danger);
+        .checkout-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
             color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .checkout-btn:hover {
+            background: var(--secondary);
+        }
+        
+        /* Overlay when cart is open */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+        
+        .overlay.active {
+            display: block;
         }
         
         /* Responsive Design */
+        @media (max-width: 992px) {
+            .cart-sidebar {
+                width: 350px;
+            }
+            
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            }
+        }
+        
         @media (max-width: 768px) {
             .sidebar {
                 width: 70px;
@@ -484,7 +601,31 @@ while ($product = $products->fetch_assoc()) {
             }
             
             .product-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+            
+            .cart-sidebar {
+                width: 100%;
+                right: -100%;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .product-name {
+                font-size: 13px;
+            }
+            
+            .product-price {
+                font-size: 14px;
+            }
+            
+            .btn {
+                padding: 5px 8px;
+                font-size: 11px;
             }
         }
     </style>
@@ -554,35 +695,9 @@ while ($product = $products->fetch_assoc()) {
                         <i class="fas fa-search"></i>
                         <input type="text" id="productSearch" placeholder="Search products..." onkeyup="searchProducts()">
                     </div>
-                    <div class="cart-btn" onclick="showCart()">
+                    <div class="cart-btn" onclick="toggleCart()">
                         <i class="fas fa-shopping-cart"></i>
                         Cart <span class="cart-badge" id="cartCount">0</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cart Modal -->
-            <div id="cartModal" class="modal fade" role="dialog">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title">Shopping Cart</h4>
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        </div>
-                        <div class="modal-body" id="cartItems">
-                            <!-- Cart items will be displayed here -->
-                        </div>
-                        <div class="modal-footer">
-                            <div class="cart-total">
-                                Total: ₱<span id="cartTotal">0.00</span>
-                            </div>
-                            <button type="button" class="btn btn-danger" onclick="clearCart()">
-                                <i class="fas fa-trash"></i> Clear
-                            </button>
-                            <button type="button" class="btn btn-success" onclick="checkoutCart()">
-                                <i class="fas fa-check"></i> Checkout
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -590,24 +705,28 @@ while ($product = $products->fetch_assoc()) {
             <!-- Product Grid -->
             <?php foreach ($categorized_products as $category => $products): ?>
                 <div id="<?php echo htmlspecialchars($category); ?>" class="category-section">
-                    <h2 style="margin-bottom: 20px; color: var(--primary);"><?php echo htmlspecialchars($category); ?></h2>
+                    <h2 style="margin-bottom: 15px; color: var(--primary); font-size: 18px;"><?php echo htmlspecialchars($category); ?></h2>
                     <div class="product-grid">
                         <?php foreach ($products as $product): ?>
                             <div class="product-card">
-                                <?php if (!empty($product['file_name'])): ?>
-                                    <img src="uploads/products/<?php echo $product['file_name']; ?>" alt="Product Image" class="product-image">
-                                <?php else: ?>
-                                    <img src="uploads/no_image.png" alt="No Image" class="product-image">
-                                <?php endif; ?>
-                                <h3 class="product-name"><?php echo remove_junk($product['name']); ?></h3>
-                                <div class="product-price">₱<?php echo remove_junk($product['sale_price']); ?></div>
-                                <div class="product-actions">
-                                    <button class="btn btn-primary" onclick="addToCart('<?php echo $product['id']; ?>', '<?php echo remove_junk($product['name']); ?>', <?php echo $product['sale_price']; ?>, '<?php echo !empty($product['file_name']) ? $product['file_name'] : 'no_image.png'; ?>')">
-                                        <i class="fas fa-cart-plus"></i> Add
-                                    </button>
-                                    <button class="btn btn-success" onclick="buyNow('<?php echo $product['id']; ?>', '<?php echo remove_junk($product['name']); ?>', <?php echo $product['sale_price']; ?>)">
-                                        <i class="fas fa-shopping-bag"></i> Buy
-                                    </button>
+                                <div class="product-image-container">
+                                    <?php if (!empty($product['file_name'])): ?>
+                                        <img src="uploads/products/<?php echo $product['file_name']; ?>" alt="Product Image" class="product-image">
+                                    <?php else: ?>
+                                        <img src="uploads/no_image.png" alt="No Image" class="product-image">
+                                    <?php endif; ?>
+                                </div>
+                                <div class="product-info">
+                                    <h3 class="product-name"><?php echo remove_junk($product['name']); ?></h3>
+                                    <div class="product-price">₱<?php echo remove_junk($product['sale_price']); ?></div>
+                                    <div class="product-actions">
+                                        <button class="btn btn-primary" onclick="addToCart('<?php echo $product['id']; ?>', '<?php echo remove_junk($product['name']); ?>', <?php echo $product['sale_price']; ?>, '<?php echo !empty($product['file_name']) ? $product['file_name'] : 'no_image.png'; ?>')">
+                                            <i class="fas fa-cart-plus"></i> Add
+                                        </button>
+                                        <button class="btn btn-success" onclick="buyNow('<?php echo $product['id']; ?>', '<?php echo remove_junk($product['name']); ?>', <?php echo $product['sale_price']; ?>)">
+                                            <i class="fas fa-shopping-bag"></i> Buy
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -617,8 +736,40 @@ while ($product = $products->fetch_assoc()) {
         </main>
     </div>
 
+    <!-- Cart Sidebar -->
+    <div class="overlay" id="cartOverlay"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Shopping Cart (<span id="sidebarCartCount">0</span>)</h3>
+            <button class="close-cart" onclick="toggleCart()">&times;</button>
+        </div>
+        <div class="cart-body" id="cartItems">
+            <div class="cart-empty">
+                <i class="fas fa-shopping-cart" style="font-size: 40px; margin-bottom: 15px; color: #ccc;"></i>
+                <p>Your cart is empty</p>
+            </div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-summary">
+                <span>Total:</span>
+                <span class="cart-total">₱<span id="cartTotal">0.00</span></span>
+            </div>
+            <button class="checkout-btn" onclick="checkoutCart()">CHECKOUT</button>
+        </div>
+    </div>
+
     <script>
     let cart = [];
+
+    // Load cart from localStorage if available
+    if (localStorage.getItem('cart')) {
+        cart = JSON.parse(localStorage.getItem('cart'));
+        updateCartCount();
+    }
+
+    function saveCart() {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
 
     function addToCart(id, name, price, image) {
         const existingItem = cart.find(item => item.id === id);
@@ -633,20 +784,46 @@ while ($product = $products->fetch_assoc()) {
                 image: image
             });
         }
+        saveCart();
         updateCartCount();
+        updateCartDisplay();
         showNotification('Product added to cart!');
+        
+        // Show cart automatically if it's hidden
+        if (!document.getElementById('cartSidebar').classList.contains('active')) {
+            toggleCart();
+        }
     }
 
     function updateCartCount() {
-        document.getElementById('cartCount').textContent = cart.reduce((total, item) => total + item.quantity, 0);
+        const count = cart.reduce((total, item) => total + item.quantity, 0);
+        document.getElementById('cartCount').textContent = count;
+        document.getElementById('sidebarCartCount').textContent = count;
     }
 
-    function showCart() {
+    function toggleCart() {
+        const cartSidebar = document.getElementById('cartSidebar');
+        const overlay = document.getElementById('cartOverlay');
+        
+        cartSidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        
+        if (cartSidebar.classList.contains('active')) {
+            updateCartDisplay();
+        }
+    }
+
+    function updateCartDisplay() {
         let cartHtml = '';
         let total = 0;
         
         if (cart.length === 0) {
-            cartHtml = '<p style="padding: 20px; text-align: center;">Your cart is empty</p>';
+            cartHtml = `
+                <div class="cart-empty">
+                    <i class="fas fa-shopping-cart" style="font-size: 40px; margin-bottom: 15px; color: #ccc;"></i>
+                    <p>Your cart is empty</p>
+                </div>
+            `;
         } else {
             cart.forEach((item, index) => {
                 const itemTotal = item.price * item.quantity;
@@ -657,13 +834,13 @@ while ($product = $products->fetch_assoc()) {
                         <div class="cart-item-details">
                             <div class="cart-item-name">${item.name}</div>
                             <div class="cart-item-price">₱${item.price.toFixed(2)}</div>
-                            <div class="cart-quantity-controls">
-                                <button class="btn btn-sm" style="background: var(--light-gray);" onclick="updateQuantity(${index}, ${item.quantity - 1})">-</button>
-                                <input type="number" class="cart-quantity" value="${item.quantity}" 
+                            <div class="cart-item-controls">
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, ${item.quantity - 1})">-</button>
+                                <input type="number" class="quantity-input" value="${item.quantity}" 
                                        onchange="updateQuantity(${index}, this.value)" min="1">
-                                <button class="btn btn-sm" style="background: var(--light-gray);" onclick="updateQuantity(${index}, ${item.quantity + 1})">+</button>
-                                <button class="btn btn-sm btn-danger" onclick="removeItem(${index})">
-                                    <i class="fas fa-trash"></i>
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, ${item.quantity + 1})">+</button>
+                                <button class="remove-item" onclick="removeItem(${index})">
+                                    <i class="fas fa-trash"></i> Remove
                                 </button>
                             </div>
                         </div>
@@ -674,7 +851,6 @@ while ($product = $products->fetch_assoc()) {
         
         document.getElementById('cartItems').innerHTML = cartHtml;
         document.getElementById('cartTotal').textContent = total.toFixed(2);
-        $('#cartModal').modal('show');
     }
 
     function updateQuantity(index, qty) {
@@ -684,21 +860,24 @@ while ($product = $products->fetch_assoc()) {
             return;
         }
         cart[index].quantity = qty;
+        saveCart();
         updateCartCount();
-        showCart();
+        updateCartDisplay();
     }
 
     function removeItem(index) {
         cart.splice(index, 1);
+        saveCart();
         updateCartCount();
-        showCart();
+        updateCartDisplay();
     }
 
     function clearCart() {
         if (confirm('Are you sure you want to clear your cart?')) {
             cart = [];
+            saveCart();
             updateCartCount();
-            showCart();
+            updateCartDisplay();
         }
     }
 
@@ -744,9 +923,9 @@ while ($product = $products->fetch_assoc()) {
             
             // Clear the cart and show success message
             cart = [];
+            saveCart();
             updateCartCount();
-            $('#cartModal').modal('hide');
-            showNotification('Products successfully checked out!');
+            toggleCart();
         }
     }
 
@@ -826,23 +1005,33 @@ while ($product = $products->fetch_assoc()) {
 
     function showNotification(message) {
         const notification = document.createElement('div');
-        notification.className = 'alert alert-success';
+        notification.className = 'notification';
         notification.style.position = 'fixed';
         notification.style.top = '20px';
         notification.style.right = '20px';
         notification.style.zIndex = '9999';
         notification.style.padding = '15px 20px';
+        notification.style.backgroundColor = '#4BB543';
+        notification.style.color = 'white';
         notification.style.borderRadius = '4px';
         notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+        notification.style.display = 'flex';
+        notification.style.alignItems = 'center';
+        notification.style.gap = '10px';
         notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
         document.body.appendChild(notification);
         
         setTimeout(() => {
-            notification.remove();
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                notification.remove();
+            }, 500);
         }, 3000);
     }
-    </script>
 
-    <?php include_once('layouts/footer.php'); ?>
+    // Close cart when clicking overlay
+    document.getElementById('cartOverlay').addEventListener('click', toggleCart);
+    </script>
 </body>
 </html>
