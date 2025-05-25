@@ -186,6 +186,9 @@ while ($product = $products->fetch_assoc()) {
             position: sticky;
             top: 0;
             z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .category-nav {
@@ -421,6 +424,9 @@ while ($product = $products->fetch_assoc()) {
             color: white;
             font-size: 20px;
             cursor: pointer;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
         }
         
         .cart-body {
@@ -585,7 +591,7 @@ while ($product = $products->fetch_assoc()) {
                 margin-left: 70px;
             }
             
-            .search-cart-container {
+            .category-nav-container {
                 flex-direction: column;
                 width: 100%;
                 gap: 10px;
