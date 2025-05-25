@@ -97,7 +97,7 @@ body {
     min-height: 100vh;
 }
 
-.sidebar {
+/* .sidebar {
     width: 250px;
     background: linear-gradient(180deg, #3a56d4 0%, #2a3eb1 100%);
     color: white;
@@ -149,7 +149,7 @@ body {
     margin-right: 10px;
     width: 20px;
     text-align: center;
-}
+} */
 
 .main-content {
     flex: 1;
@@ -696,14 +696,14 @@ body {
                     Enter a descriptive name for your new category
                   </small>
                 </div>
-                <div style="margin-top: 30px;">
+                <!-- <div style="margin-top: 30px;">
                   <div class="form-group">
                     <label>
                       <i class="fas fa-info-circle mr-2"></i>Additional Information
                     </label>
                     <textarea class="form-control" rows="3" placeholder="Optional description or notes"></textarea>
                   </div>
-                </div>
+                </div> -->
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-dismiss="modal">
