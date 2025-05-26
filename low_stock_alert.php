@@ -33,7 +33,6 @@ use PHPMailer\PHPMailer\Exception;
 
 require 'vendor/autoload.php';
 
-// Function to send email using SMTP
 function sendLowStockEmail($toEmail, $toName, $lowStockProducts) {
     $mail = new PHPMailer(true);
     
@@ -55,24 +54,95 @@ function sendLowStockEmail($toEmail, $toName, $lowStockProducts) {
         $mail->isHTML(true);
         $mail->Subject = 'Low Stock Alert - SpringBullbars';
         
-        // Build email body
-        $emailBody = '<h2>Low Stock Alert</h2>';
-        $emailBody .= '<p>The following products are running low on stock (as of '.date('Y-m-d H:i:s').'):</p>';
-        $emailBody .= '<table border="1" cellpadding="5" cellspacing="0">';
-        $emailBody .= '<tr><th>Product Name</th><th>Remaining Quantity</th></tr>';
+        // Build email body with enhanced styling
+        $emailBody = '
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                }
+                h2 {
+                    color: #d9534f;
+                    margin-bottom: 20px;
+                }
+                .alert-message {
+                    margin-bottom: 20px;
+                }
+                .product-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                }
+                .product-table th {
+                    background-color: #d9534f;
+                    color: white;
+                    padding: 12px;
+                    text-align: left;
+                }
+                .product-table td {
+                    padding: 10px 12px;
+                    border-bottom: 1px solid #ddd;
+                }
+                .product-table tr:nth-child(even) {
+                    background-color: #f9f9f9;
+                }
+                .product-table tr:hover {
+                    background-color: #f1f1f1;
+                }
+                .footer {
+                    margin-top: 20px;
+                    font-size: 0.9em;
+                    color: #777;
+                }
+                .highlight {
+                    font-weight: bold;
+                    color: #d9534f;
+                }
+            </style>
+        </head>
+        <body>
+            <h2>Low Stock Alert</h2>
+            <div class="alert-message">
+                <p>The following products are running <span class="highlight">low on stock</span> (as of '.date('Y-m-d H:i:s').'):</p>
+            </div>
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Remaining Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>';
         
         foreach ($lowStockProducts as $product) {
-            $emailBody .= '<tr>';
-            $emailBody .= '<td>' . htmlspecialchars($product['name']) . '</td>';
-            $emailBody .= '<td>' . $product['quantity'] . '</td>';
-            $emailBody .= '</tr>';
+            $emailBody .= '
+                    <tr>
+                        <td>' . htmlspecialchars($product['name']) . '</td>
+                        <td>' . $product['quantity'] . '</td>
+                    </tr>';
         }
         
-        $emailBody .= '</table>';
-        $emailBody .= '<p>Please restock these items as soon as possible.</p>';
+        $emailBody .= '
+                </tbody>
+            </table>
+            <div class="footer">
+                <p>Please restock these items as soon as possible.</p>
+                <p>This is an automated message from SpringBullbars Inventory System.</p>
+            </div>
+        </body>
+        </html>';
         
         $mail->Body = $emailBody;
-        $mail->AltBody = strip_tags($emailBody);
+        $mail->AltBody = "Low Stock Alert\n\n" .
+                         "The following products are running low on stock (as of ".date('Y-m-d H:i:s')."):\n\n" .
+                         implode("\n", array_map(function($p) {
+                             return $p['name'] . ": " . $p['quantity'] . " remaining";
+                         }, $lowStockProducts)) .
+                         "\n\nPlease restock these items as soon as possible.";
         
         $mail->send();
         return true;

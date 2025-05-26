@@ -3,15 +3,23 @@ $page_title = 'Add Sale';
 require_once('includes/load.php');
 page_require_level(3);
 
-// Handle form submission
 if (isset($_POST['confirm_sale'])) {
     $success = true;
+    $errors = [];
     
-    // Loop through all items in the cart
     foreach ($_POST['s_id'] as $index => $p_id) {
         $p_id = $db->escape((int)$p_id);
         $s_qty = $db->escape((int)$_POST['quantity'][$index]);
         $s_price = $db->escape($_POST['price'][$index]);
+        
+        // Check available stock
+        $product = find_by_id('products', $p_id);
+        if ((int)$product['quantity'] < $s_qty) {
+            $errors[] = "Not enough stock for {$product['name']} (Available: {$product['quantity']}, Requested: {$s_qty})";
+            $success = false;
+            continue;
+        }
+        
         $s_total = $s_qty * $s_price;
         $s_date = make_date();
 
@@ -22,6 +30,7 @@ if (isset($_POST['confirm_sale'])) {
             update_product_qty($s_qty, $p_id);
         } else {
             $success = false;
+            $errors[] = "Failed to record sale for {$product['name']}";
             break;
         }
     }
@@ -29,20 +38,46 @@ if (isset($_POST['confirm_sale'])) {
     if ($success) {
         $session->msg('s', "Products Bought.");
     } else {
-        $session->msg('d', 'Sorry, failed to add some items!');
+        $error_msg = 'Failed to add some items!<br>' . implode('<br>', $errors);
+        $session->msg('d', $error_msg);
     }
     redirect('add_sale.php', false);
 }
 
-// Fetch products along with images and categories
-$sql = "SELECT p.id, p.name, p.sale_price, m.file_name, c.name AS category 
+if (isset($_POST['buy_now'])) {
+    $p_id = $db->escape((int)$_POST['p_id']);
+    $s_qty = $db->escape((int)$_POST['quantity']);
+    $s_price = $db->escape($_POST['price']);
+    
+    // Check available stock
+    $product = find_by_id('products', $p_id);
+    if ((int)$product['quantity'] < $s_qty) {
+        $session->msg('d', "Not enough stock for {$product['name']} (Available: {$product['quantity']}, Requested: {$s_qty})");
+        redirect('add_sale.php', false);
+    }
+    
+    $s_total = $s_qty * $s_price;
+    $s_date = make_date();
+
+    $sql = "INSERT INTO sales (product_id, qty, price, date, user_id) 
+            VALUES ('{$p_id}', '{$s_qty}', '{$s_price}', '{$s_date}', '{$user_id}')";        
+
+    if ($db->query($sql)) {
+        update_product_qty($s_qty, $p_id);
+        $session->msg('s', "Product Bought.");
+    } else {
+        $session->msg('d', 'Sorry, failed to buy the product!');
+    }
+    redirect('add_sale.php', false);
+}
+
+$sql = "SELECT p.id, p.name, p.sale_price, p.quantity, m.file_name, c.name AS category 
         FROM products p 
         LEFT JOIN media m ON p.media_id = m.id 
         LEFT JOIN categories c ON p.categorie_id = c.id
         ORDER BY c.name";
 $products = $db->query($sql);
 
-// Group products by category
 $categorized_products = [];
 while ($product = $products->fetch_assoc()) {
     $categorized_products[$product['category']][] = $product;
@@ -88,7 +123,6 @@ while ($product = $products->fetch_assoc()) {
             min-height: 100vh;
         }
         
-        /* Sidebar Styles */
         .sidebar {
             width: 240px;
             background: white;
@@ -141,7 +175,6 @@ while ($product = $products->fetch_assoc()) {
             text-align: center;
         }
         
-        /* Main Content Styles */
         .main-content {
             flex: 1;
             margin-left: 240px;
@@ -176,7 +209,6 @@ while ($product = $products->fetch_assoc()) {
             object-fit: cover;
         }
         
-        /* Category Navigation */
         .category-nav-container {
             background: white;
             border-radius: 10px;
@@ -219,7 +251,6 @@ while ($product = $products->fetch_assoc()) {
             color: var(--primary);
         }
         
-        /* Search and Cart */
         .search-cart-container {
             display: flex;
             align-items: center;
@@ -283,7 +314,6 @@ while ($product = $products->fetch_assoc()) {
             margin-left: 8px;
         }
         
-        /* Product Grid - Shopee Style */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -307,7 +337,7 @@ while ($product = $products->fetch_assoc()) {
         
         .product-image-container {
             position: relative;
-            padding-top: 100%; /* 1:1 Aspect Ratio */
+            padding-top: 100%;
             overflow: hidden;
         }
         
@@ -385,7 +415,13 @@ while ($product = $products->fetch_assoc()) {
             background-color: #3a8b8f;
         }
         
-        /* Floating Cart Sidebar */
+        .btn-disabled {
+            background-color: var(--light-gray);
+            color: var(--gray);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
         .cart-sidebar {
             position: fixed;
             top: 0;
@@ -446,6 +482,11 @@ while ($product = $products->fetch_assoc()) {
             margin-bottom: 15px;
             padding-bottom: 15px;
             border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .cart-item.invalid {
+            border-left: 3px solid var(--danger);
+            background-color: rgba(247, 37, 133, 0.05);
         }
         
         .cart-item-image {
@@ -536,11 +577,15 @@ while ($product = $products->fetch_assoc()) {
             transition: background 0.3s;
         }
         
+        .checkout-btn:disabled {
+            background-color: var(--gray) !important;
+            cursor: not-allowed !important;
+        }
+        
         .checkout-btn:hover {
             background: var(--secondary);
         }
         
-        /* Overlay when cart is open */
         .overlay {
             position: fixed;
             top: 0;
@@ -556,7 +601,81 @@ while ($product = $products->fetch_assoc()) {
             display: block;
         }
         
-        /* Responsive Design */
+        .product-stock {
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .stock-high {
+            color: var(--success);
+        }
+        
+        .stock-low {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .stock-out {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .product-card.low-stock {
+            border: 1px solid var(--danger);
+            position: relative;
+        }
+        
+        .product-card.low-stock::after {
+            content: 'Low Stock';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--danger);
+            color: white;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .product-card.out-of-stock {
+            border: 1px solid var(--danger);
+            position: relative;
+            opacity: 0.7;
+        }
+        
+        .product-card.out-of-stock::after {
+            content: 'Out of Stock';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--danger);
+            color: white;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            padding: 15px 20px;
+            background-color: #4BB543;
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification.error {
+            background-color: var(--danger);
+        }
+        
         @media (max-width: 992px) {
             .cart-sidebar {
                 width: 350px;
@@ -638,7 +757,6 @@ while ($product = $products->fetch_assoc()) {
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h3>Staff Portal</h3>
@@ -677,7 +795,6 @@ while ($product = $products->fetch_assoc()) {
             </ul>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <div class="header">
                 <h1>Add New Sale</h1>
@@ -689,7 +806,6 @@ while ($product = $products->fetch_assoc()) {
 
             <?php echo display_msg($msg); ?>
 
-            <!-- Category Navigation -->
             <div class="category-nav-container">
                 <div class="category-nav">
                     <?php foreach ($categorized_products as $category => $products): ?>
@@ -708,13 +824,27 @@ while ($product = $products->fetch_assoc()) {
                 </div>
             </div>
 
-            <!-- Product Grid -->
             <?php foreach ($categorized_products as $category => $products): ?>
                 <div id="<?php echo htmlspecialchars($category); ?>" class="category-section">
                     <h2 style="margin-bottom: 15px; color: var(--primary); font-size: 18px;"><?php echo htmlspecialchars($category); ?></h2>
                     <div class="product-grid">
-                        <?php foreach ($products as $product): ?>
-                            <div class="product-card">
+                        <?php foreach ($products as $product): 
+                            $stockClass = '';
+                            $stockTextClass = '';
+                            $disabled = false;
+                            
+                            if ($product['quantity'] <= 0) {
+                                $stockClass = 'out-of-stock';
+                                $stockTextClass = 'stock-out';
+                                $disabled = true;
+                            } elseif ($product['quantity'] <= 5) {
+                                $stockClass = 'low-stock';
+                                $stockTextClass = 'stock-low';
+                            } else {
+                                $stockTextClass = 'stock-high';
+                            }
+                        ?>
+                            <div class="product-card <?php echo $stockClass; ?>">
                                 <div class="product-image-container">
                                     <?php if (!empty($product['file_name'])): ?>
                                         <img src="uploads/products/<?php echo $product['file_name']; ?>" alt="Product Image" class="product-image">
@@ -724,12 +854,19 @@ while ($product = $products->fetch_assoc()) {
                                 </div>
                                 <div class="product-info">
                                     <h3 class="product-name"><?php echo remove_junk($product['name']); ?></h3>
+                                    <div class="product-stock <?php echo $stockTextClass; ?>">
+                                        Stock: <?php echo (int)$product['quantity']; ?>
+                                    </div>
                                     <div class="product-price">₱<?php echo remove_junk($product['sale_price']); ?></div>
                                     <div class="product-actions">
-                                        <button class="btn btn-primary" onclick="addToCart('<?php echo $product['id']; ?>', '<?php echo remove_junk($product['name']); ?>', <?php echo $product['sale_price']; ?>, '<?php echo !empty($product['file_name']) ? $product['file_name'] : 'no_image.png'; ?>')">
+                                        <button class="btn <?php echo $disabled ? 'btn-disabled' : 'btn-primary'; ?>" 
+                                                <?php echo $disabled ? 'disabled' : ''; ?>
+                                                onclick="<?php echo $disabled ? '' : "addToCart('{$product['id']}', '".remove_junk($product['name'])."', {$product['sale_price']}, '".(!empty($product['file_name']) ? $product['file_name'] : 'no_image.png')."', {$product['quantity']})"; ?>">
                                             <i class="fas fa-cart-plus"></i> Add
                                         </button>
-                                        <button class="btn btn-success" onclick="buyNow('<?php echo $product['id']; ?>', '<?php echo remove_junk($product['name']); ?>', <?php echo $product['sale_price']; ?>)">
+                                        <button class="btn <?php echo $disabled ? 'btn-disabled' : 'btn-success'; ?>" 
+                                                <?php echo $disabled ? 'disabled' : ''; ?>
+                                                onclick="<?php echo $disabled ? '' : "directBuy('{$product['id']}', '".remove_junk($product['name'])."', {$product['sale_price']}, {$product['quantity']})"; ?>">
                                             <i class="fas fa-shopping-bag"></i> Buy
                                         </button>
                                     </div>
@@ -742,7 +879,6 @@ while ($product = $products->fetch_assoc()) {
         </main>
     </div>
 
-    <!-- Cart Sidebar -->
     <div class="overlay" id="cartOverlay"></div>
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
@@ -767,7 +903,6 @@ while ($product = $products->fetch_assoc()) {
     <script>
     let cart = [];
 
-    // Load cart from localStorage if available
     if (localStorage.getItem('cart')) {
         cart = JSON.parse(localStorage.getItem('cart'));
         updateCartCount();
@@ -777,8 +912,17 @@ while ($product = $products->fetch_assoc()) {
         localStorage.setItem('cart', JSON.stringify(cart));
     }
 
-    function addToCart(id, name, price, image) {
+    function addToCart(id, name, price, image, stock) {
+        // Check if product is already in cart
         const existingItem = cart.find(item => item.id === id);
+        const currentQty = existingItem ? existingItem.quantity : 0;
+        
+        // Check if adding would exceed stock
+        if (currentQty >= stock) {
+            showNotification(`Cannot add more. Only ${stock} available in stock!`, 'error');
+            return;
+        }
+        
         if (existingItem) {
             existingItem.quantity += 1;
         } else {
@@ -787,18 +931,60 @@ while ($product = $products->fetch_assoc()) {
                 name: name,
                 price: parseFloat(price),
                 quantity: 1,
-                image: image
+                image: image,
+                stock: stock
             });
         }
         saveCart();
         updateCartCount();
-        updateCartDisplay();
         showNotification('Product added to cart!');
+    }
+
+    function directBuy(id, name, price, stock) {
+        const maxQty = stock;
+        const quantity = prompt(`How many ${name} would you like to buy? (Max: ${maxQty})`, '1');
         
-        // Show cart automatically if it's hidden
-        if (!document.getElementById('cartSidebar').classList.contains('active')) {
-            toggleCart();
+        if (quantity === null) return; // User cancelled
+        
+        const qty = parseInt(quantity);
+        
+        if (isNaN(qty)) {
+            showNotification('Please enter a valid number!', 'error');
+            return;
         }
+        
+        if (qty <= 0) {
+            showNotification('Quantity must be at least 1!', 'error');
+            return;
+        }
+        
+        if (qty > stock) {
+            showNotification(`Cannot order ${qty}. Only ${stock} available in stock!`, 'error');
+            return;
+        }
+        
+        // Proceed with purchase
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'add_sale.php';
+        
+        const fields = {
+            'p_id': id,
+            'quantity': qty,
+            'price': price,
+            'buy_now': 'true'
+        };
+        
+        for (const [key, value] of Object.entries(fields)) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
     }
 
     function updateCartCount() {
@@ -822,6 +1008,7 @@ while ($product = $products->fetch_assoc()) {
     function updateCartDisplay() {
         let cartHtml = '';
         let total = 0;
+        let hasInvalidItems = false;
         
         if (cart.length === 0) {
             cartHtml = `
@@ -834,12 +1021,19 @@ while ($product = $products->fetch_assoc()) {
             cart.forEach((item, index) => {
                 const itemTotal = item.price * item.quantity;
                 total += itemTotal;
+                const exceedsStock = item.quantity > item.stock;
+                if (exceedsStock) hasInvalidItems = true;
+                
                 cartHtml += `
-                    <div class="cart-item">
+                    <div class="cart-item ${exceedsStock ? 'invalid' : ''}">
                         <img src="uploads/products/${item.image}" class="cart-item-image" alt="${item.name}">
                         <div class="cart-item-details">
                             <div class="cart-item-name">${item.name}</div>
                             <div class="cart-item-price">₱${item.price.toFixed(2)}</div>
+                            <div class="cart-item-stock" style="font-size: 12px; color: ${exceedsStock ? 'red' : 'green'}; margin-bottom: 5px;">
+                                Stock: ${item.stock} | Ordered: ${item.quantity}
+                                ${exceedsStock ? ' (Not enough stock!)' : ''}
+                            </div>
                             <div class="cart-item-controls">
                                 <button class="quantity-btn" onclick="updateQuantity(${index}, ${item.quantity - 1})">-</button>
                                 <input type="number" class="quantity-input" value="${item.quantity}" 
@@ -857,15 +1051,35 @@ while ($product = $products->fetch_assoc()) {
         
         document.getElementById('cartItems').innerHTML = cartHtml;
         document.getElementById('cartTotal').textContent = total.toFixed(2);
+        
+        // Disable checkout button if any items exceed stock
+        const checkoutBtn = document.querySelector('.checkout-btn');
+        checkoutBtn.disabled = hasInvalidItems;
+        checkoutBtn.style.opacity = hasInvalidItems ? 0.6 : 1;
+        checkoutBtn.style.cursor = hasInvalidItems ? 'not-allowed' : 'pointer';
+        
+        if (hasInvalidItems) {
+            checkoutBtn.title = "Cannot checkout - some items exceed available stock";
+        } else {
+            checkoutBtn.title = "";
+        }
     }
 
     function updateQuantity(index, qty) {
         qty = parseInt(qty);
-        if (qty < 1) {
-            removeItem(index);
+        const item = cart[index];
+        
+        if (isNaN(qty) || qty < 1) {
+            showNotification('Quantity must be at least 1!', 'error');
             return;
         }
-        cart[index].quantity = qty;
+        
+        if (qty > item.stock) {
+            showNotification(`Cannot order ${qty}. Only ${item.stock} available in stock!`, 'error');
+            return;
+        }
+        
+        item.quantity = qty;
         saveCart();
         updateCartCount();
         updateCartDisplay();
@@ -876,30 +1090,27 @@ while ($product = $products->fetch_assoc()) {
         saveCart();
         updateCartCount();
         updateCartDisplay();
-    }
-
-    function clearCart() {
-        if (confirm('Are you sure you want to clear your cart?')) {
-            cart = [];
-            saveCart();
-            updateCartCount();
-            updateCartDisplay();
-        }
+        showNotification('Item removed from cart');
     }
 
     function checkoutCart() {
         if (cart.length === 0) {
-            alert('Your cart is empty!');
+            showNotification('Your cart is empty!', 'error');
+            return;
+        }
+        
+        // Check if any items exceed stock
+        const invalidItems = cart.filter(item => item.quantity > item.stock);
+        if (invalidItems.length > 0) {
+            showNotification('Cannot checkout - some items exceed available stock!', 'error');
             return;
         }
         
         if (confirm('Are you sure you want to checkout all items in your cart?')) {
-            // Create a single form for all items
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = 'add_sale.php';
             
-            // Add each item as an array to the form
             cart.forEach((item, index) => {
                 const fields = {
                     [`s_id[${index}]`]: item.id,
@@ -916,32 +1127,20 @@ while ($product = $products->fetch_assoc()) {
                 }
             });
             
-            // Add the confirm_sale field
             const confirmInput = document.createElement('input');
             confirmInput.type = 'hidden';
             confirmInput.name = 'confirm_sale';
             confirmInput.value = 'true';
             form.appendChild(confirmInput);
             
-            // Submit the form and clear the cart
             document.body.appendChild(form);
             form.submit();
             
-            // Clear the cart and show success message
             cart = [];
             saveCart();
             updateCartCount();
             toggleCart();
         }
-    }
-
-    function buyNow(id, name, price) {
-        // Clear cart first
-        cart = [];
-        // Add the single item
-        addToCart(id, name, price, '');
-        // Immediately checkout
-        checkoutCart();
     }
 
     function searchProducts() {
@@ -961,16 +1160,14 @@ while ($product = $products->fetch_assoc()) {
                     productCard.style.display = "";
                     hasVisibleProducts = true;
                 } else {
-                    productCard.style.display = "none";
+                    productCard.style.display =             "none";
                 }
             });
             
-            // Show/hide category based on visible products
             category.style.display = hasVisibleProducts ? "" : "none";
         });
     }
 
-    // Highlight active category in navigation when scrolling
     window.addEventListener('scroll', function() {
         const categoryLinks = document.querySelectorAll('.category-nav a');
         const scrollPosition = window.scrollY + 100;
@@ -993,7 +1190,6 @@ while ($product = $products->fetch_assoc()) {
         });
     });
 
-    // Smooth scroll for category links
     document.querySelectorAll('.category-nav a').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
@@ -1009,22 +1205,22 @@ while ($product = $products->fetch_assoc()) {
         });
     });
 
-    function showNotification(message) {
+    function showNotification(message, type = 'success') {
         const notification = document.createElement('div');
-        notification.className = 'notification';
+        notification.className = `notification ${type === 'error' ? 'error' : ''}`;
         notification.style.position = 'fixed';
         notification.style.top = '20px';
         notification.style.right = '20px';
         notification.style.zIndex = '9999';
         notification.style.padding = '15px 20px';
-        notification.style.backgroundColor = '#4BB543';
+        notification.style.backgroundColor = type === 'success' ? '#4BB543' : '#ff3333';
         notification.style.color = 'white';
         notification.style.borderRadius = '4px';
         notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
         notification.style.display = 'flex';
         notification.style.alignItems = 'center';
         notification.style.gap = '10px';
-        notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+        notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
         document.body.appendChild(notification);
         
         setTimeout(() => {
@@ -1036,8 +1232,10 @@ while ($product = $products->fetch_assoc()) {
         }, 3000);
     }
 
-    // Close cart when clicking overlay
     document.getElementById('cartOverlay').addEventListener('click', toggleCart);
+
+    // Initialize cart display
+    updateCartDisplay();
     </script>
 </body>
 </html>
