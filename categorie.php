@@ -97,60 +97,6 @@ body {
     min-height: 100vh;
 }
 
-/* .sidebar {
-    width: 250px;
-    background: linear-gradient(180deg, #3a56d4 0%, #2a3eb1 100%);
-    color: white;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-    position: fixed;
-    height: 100vh;
-    padding: 20px 0;
-}
-
-.sidebar-header {
-    padding: 0 20px 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.sidebar-header h3 {
-    color: white;
-    font-weight: 600;
-}
-
-.sidebar-menu {
-    padding: 20px 0;
-}
-
-.sidebar-menu ul {
-    list-style: none;
-}
-
-.sidebar-menu li a {
-    display: block;
-    padding: 12px 20px;
-    color: rgba(255,255,255,0.8);
-    text-decoration: none;
-    transition: all 0.3s;
-    font-size: 15px;
-}
-
-.sidebar-menu li a:hover {
-    background: rgba(255,255,255,0.1);
-    color: white;
-    padding-left: 25px;
-}
-
-.sidebar-menu li a.active {
-    background: rgba(255,255,255,0.2);
-    color: white;
-}
-
-.sidebar-menu li a i {
-    margin-right: 10px;
-    width: 20px;
-    text-align: center;
-} */
-
 .main-content {
     flex: 1;
     margin-left: 250px;
@@ -463,6 +409,7 @@ body {
     width: 500px;
     height: 380px;
     margin: auto;
+    overflow: hidden; /* Changed from auto to hidden to disable scrolling */
 }
 
 .modal-header {
@@ -570,7 +517,7 @@ body {
     .modal-content {
         width: 95%;
         height: auto;
-        min-height: 500px;
+        min-height: 250px;
     }
     
     .modal-header,
@@ -696,14 +643,6 @@ body {
                     Enter a descriptive name for your new category
                   </small>
                 </div>
-                <!-- <div style="margin-top: 30px;">
-                  <div class="form-group">
-                    <label>
-                      <i class="fas fa-info-circle mr-2"></i>Additional Information
-                    </label>
-                    <textarea class="form-control" rows="3" placeholder="Optional description or notes"></textarea>
-                  </div>
-                </div> -->
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-dismiss="modal">
