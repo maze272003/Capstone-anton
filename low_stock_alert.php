@@ -7,17 +7,13 @@ define('DB_NAME', 'imssb');
 
 // SMTP Configuration
 define('SMTP_HOST', 'smtp.gmail.com');
-define('SMTP_USERNAME', 'warpgate27@gmail.com');
-define('SMTP_PASSWORD', 'kiai dqav srik yqvd');
+define('SMTP_USERNAME', 'rueda.antonl@gmail.com');
+define('SMTP_PASSWORD', 'qwjd dfzt hmra abct');
 define('FROM_EMAIL', 'warpgate27@gmail.com');
 define('FROM_NAME', 'SpringBullbars');
 
 // Stock threshold (adjust as needed)
 define('LOW_STOCK_THRESHOLD', 5);
-// Email interval in seconds
-define('EMAIL_INTERVAL', 20);
-// Total runtime in seconds (24 hours)
-define('TOTAL_RUNTIME', 86400);
 
 // Connect to database
 try {
@@ -167,58 +163,112 @@ function getLowStockProducts($db) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Main execution with 24-hour runtime limit
-try {
-    $startTime = time();
-    $endTime = $startTime + TOTAL_RUNTIME;
+// Check if the form was submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['trigger_alerts'])) {
+    $timestamp = date('Y-m-d H:i:s');
+    $message = '';
     
-    echo "Starting low stock alert system at ".date('Y-m-d H:i:s', $startTime)."\n";
-    echo "Will run until ".date('Y-m-d H:i:s', $endTime)." (24 hours)\n";
-    echo "Checking every ".EMAIL_INTERVAL." seconds...\n";
-    
-    while (time() < $endTime) {
-        $currentTime = time();
-        $remainingTime = $endTime - $currentTime;
-        $timestamp = date('Y-m-d H:i:s');
-        
-        echo "\n[{$timestamp}] Checking stock levels (".gmdate('H:i:s', $remainingTime)." remaining)...\n";
-        
+    try {
         $lowStockProducts = getLowStockProducts($db);
 
         if (!empty($lowStockProducts)) {
             $adminUsers = getAdminUsers($db);
             
             if (empty($adminUsers)) {
-                error_log("[$timestamp] No admin users found to receive alerts.");
-                echo "[$timestamp] No admin users found to receive alerts.\n";
+                $message = "[$timestamp] No admin users found to receive alerts.";
+                error_log($message);
             } else {
+                $sentCount = 0;
                 foreach ($adminUsers as $admin) {
                     $sendResult = sendLowStockEmail($admin['email'], $admin['name'], $lowStockProducts);
                     
                     if ($sendResult) {
-                        echo "[$timestamp] Low stock alert sent to: " . $admin['email'] . "\n";
+                        $message .= "[$timestamp] Low stock alert sent to: " . $admin['email'] . "<br>";
                         file_put_contents('low_stock_alerts.log', 
                             "[$timestamp] Sent to " . $admin['email'] . PHP_EOL, 
                             FILE_APPEND);
+                        $sentCount++;
                     } else {
-                        echo "[$timestamp] Failed to send alert to: " . $admin['email'] . "\n";
+                        $message .= "[$timestamp] Failed to send alert to: " . $admin['email'] . "<br>";
                     }
+                }
+                
+                if ($sentCount > 0) {
+                    $message = "<div class='alert alert-success'>$message</div>";
+                } else {
+                    $message = "<div class='alert alert-danger'>$message</div>";
                 }
             }
         } else {
-            echo "[$timestamp] No products are currently low in stock.\n";
+            $message = "<div class='alert alert-info'>[$timestamp] No products are currently low in stock.</div>";
         }
-        
-        // Calculate sleep time, adjusting for the last iteration
-        $sleepTime = min(EMAIL_INTERVAL, $endTime - time());
-        if ($sleepTime > 0) {
-            sleep($sleepTime);
-        }
+    } catch (Exception $e) {
+        $message = "<div class='alert alert-danger'>An error occurred: " . htmlspecialchars($e->getMessage()) . "</div>";
+        error_log("Error in low stock alert system: " . $e->getMessage());
     }
-    
-    echo "\n".date('Y-m-d H:i:s')." - 24-hour runtime completed. Script stopping.\n";
-    
-} catch (Exception $e) {
-    error_log("Error in low stock alert system: " . $e->getMessage());
-    echo "An error occurred: " . $e->getMessage() . "\n";
 }
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Low Stock Alert System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+        }
+        .btn-primary {
+            background-color: #d9534f;
+            border-color: #d9534f;
+        }
+        .btn-primary:hover {
+            background-color: #c9302c;
+            border-color: #c12e2a;
+        }
+        .card {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background-color: #d9534f;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-center">Low Stock Alert System</h2>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Click the button below to manually check for low stock items and send alerts to administrators.</p>
+                
+                <form method="POST" action="">
+                    <button type="submit" name="trigger_alerts" class="btn btn-primary btn-lg w-100">
+                        Check Stock and Send Alerts
+                    </button>
+                </form>
+                
+                <?php if (!empty($message)): ?>
+                    <div class="mt-4">
+                        <?php echo $message; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="card-footer text-muted">
+                Last checked: <?php echo date('Y-m-d H:i:s'); ?>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

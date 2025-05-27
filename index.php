@@ -601,7 +601,7 @@
                 </div>
             </div>
             <div class="hero-image-container">
-                <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Bullbar showcase" class="hero-image">
+                <img src="uploads/img/logo.png" alt="Bullbar showcase" class="hero-image">
             </div>
         </div>
     </section>

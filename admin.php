@@ -657,8 +657,7 @@ if ($filter == 'year') {
                 <div class="inventory-value">₱<?php echo number_format($inventory_value, 2); ?></div>
             </div>
             <br>
-            <br>
-            <br>
+           
             <!-- Filter Container -->
             <div class="filter-container">
                 <form id="filterForm" method="get" action="" class="filter-form">
