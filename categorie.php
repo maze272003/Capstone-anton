@@ -461,7 +461,7 @@ body {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
     border: none;
     width: 500px;
-    height: 500px;
+    height: 380px;
     margin: auto;
 }
 
@@ -491,7 +491,7 @@ body {
 
 .modal-body {
     padding: 30px;
-    height: calc(500px - 160px);
+    
     overflow-y: auto;
 }
 
