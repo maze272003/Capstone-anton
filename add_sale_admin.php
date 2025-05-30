@@ -397,23 +397,7 @@ while ($product = $products->fetch_assoc()) {
 </head>
 <body>
     <div class="admin-container">
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <h3><i class="fas fa-bullseye"></i> Spring Bullbars</h3>
-            </div>
-            <div class="sidebar-menu">
-                <ul>
-                    <!-- Admin Menu Links -->
-                    <li><a href="admin.php"><i class="fas fa-home"></i> Dashboard</a></li>
-                    <li><a href="users.php"><i class="fas fa-users"></i> Users</a></li>
-                    <li><a href="product.php"><i class="fas fa-box-open"></i> Products</a></li>
-                    <li><a href="add_product.php"><i class="fa-solid fa-plus"></i> Add New Products</a></li>
-                    <li><a href="sales.php"><i class="fas fa-shopping-cart"></i> Sales</a></li>
-                    <li><a href="sales_report.php"><i class="fa-solid fa-calendar-days"></i>Selacted date Sales</a></li>
-                    <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
-            </div>
-        </div>
+        <?php include_once('sidebar.php'); ?>
         
         <!-- Main Content -->
         <div class="main-content">

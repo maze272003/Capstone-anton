@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 $page_title = 'Admin Dashboard';
 require_once('includes/load.php');
 
@@ -50,9 +52,7 @@ function find_highest_selling_products($limit = '10', $filter = 'all') {
   } else {
       return array(); // Return empty array if no results
   }
-
 }
-
 
 // Get filter for top selling products
 $product_filter = isset($_GET['product_filter']) ? $_GET['product_filter'] : 'all';
@@ -64,6 +64,123 @@ $inventory_value = 0;
 $products = find_all('products');
 foreach ($products as $product) {
     $inventory_value += ($product['quantity'] * $product['buy_price']);
+}
+
+// NEW ANALYTICS FUNCTIONS
+
+// 1. Stock Level Overview
+function get_stock_levels() {
+    global $db;
+    $sql = "SELECT id, name, quantity, min_quantity FROM products ORDER BY quantity ASC";
+    return find_by_sql($sql);
+}
+
+// 2. Profit Margin per Product
+function get_profit_margins() {
+    global $db;
+    $sql = "SELECT p.id, p.name, p.sale_price, p.buy_price, 
+                   (p.sale_price - p.buy_price) as profit,
+                   ROUND(((p.sale_price - p.buy_price)/p.buy_price)*100, 2) as margin_percentage
+            FROM products p
+            ORDER BY profit DESC";
+    return find_by_sql($sql);
+}
+
+// 3. Average Daily/Weekly Sales
+function get_average_daily_sales($period = 'week') {
+    global $db;
+    if ($period == 'week') {
+        $sql = "SELECT DAYNAME(date) as day, 
+                       AVG(total) as avg_sales, 
+                       SUM(total) as total_sales
+                FROM (
+                    SELECT DATE(date) as date, SUM(qty * price) as total
+                    FROM sales
+                    WHERE date >= DATE_SUB(CURDATE(), INTERVAL 8 WEEK)
+                    GROUP BY DATE(date)
+                ) as daily_sales
+                GROUP BY DAYNAME(date)
+                ORDER BY FIELD(day, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')";
+    } else {
+        $sql = "SELECT DATE_FORMAT(date, '%Y-%m-%d') as date, SUM(qty * price) as total
+                FROM sales
+                WHERE date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                GROUP BY DATE(date)
+                ORDER BY date";
+    }
+    return find_by_sql($sql);
+}
+
+// 4. Category-wise Sales Distribution
+function get_category_sales() {
+    global $db;
+    $sql = "SELECT c.name as category, 
+                   SUM(s.qty * s.price) as total_sales,
+                   COUNT(DISTINCT s.product_id) as products_sold
+            FROM sales s
+            LEFT JOIN products p ON s.product_id = p.id
+            LEFT JOIN categories c ON p.categorie_id = c.id
+            WHERE c.name IS NOT NULL
+            GROUP BY c.name
+            ORDER BY total_sales DESC";
+    return find_by_sql($sql);
+}
+
+// 5. Unsold / Slow-Moving Products
+function get_unsold_products() {
+    global $db;
+    $sql = "SELECT p.id, p.name, p.quantity, p.date, 
+                   MAX(s.date) as last_sold_date,
+                   DATEDIFF(CURDATE(), MAX(s.date)) as days_unsold
+            FROM products p
+            LEFT JOIN sales s ON p.id = s.product_id
+            GROUP BY p.id, p.name, p.quantity, p.date
+            HAVING (last_sold_date IS NULL OR days_unsold > 90) AND p.quantity > 0
+            ORDER BY days_unsold DESC";
+    return find_by_sql($sql);
+}
+
+// 6. Average Time from Product Added to First Sale
+function get_time_to_first_sale() {
+    global $db;
+    $sql = "SELECT p.id, p.name, p.date as added_date, 
+                   MIN(s.date) as first_sale_date,
+                   DATEDIFF(MIN(s.date), p.date) as days_to_first_sale
+            FROM products p
+            LEFT JOIN sales s ON p.id = s.product_id
+            WHERE s.date IS NOT NULL
+            GROUP BY p.id, p.name, p.date
+            ORDER BY days_to_first_sale DESC";
+    return find_by_sql($sql);
+}
+
+// 7. Revenue Loss from Unsold Items
+function get_potential_loss() {
+    global $db;
+    $sql = "SELECT p.id, p.name, p.quantity, p.buy_price, 
+                   (p.quantity * p.buy_price) as potential_loss,
+                   MAX(s.date) as last_sold_date
+            FROM products p
+            LEFT JOIN sales s ON p.id = s.product_id
+            GROUP BY p.id, p.name, p.quantity, p.buy_price
+            HAVING last_sold_date IS NULL OR DATEDIFF(CURDATE(), last_sold_date) > 180
+            ORDER BY potential_loss DESC";
+    return find_by_sql($sql);
+}
+
+// Get all analytics data
+$stock_levels = get_stock_levels();
+$profit_margins = get_profit_margins();
+$avg_daily_sales = get_average_daily_sales('week');
+$category_sales = get_category_sales();
+$unsold_products = get_unsold_products();
+$time_to_first_sale = get_time_to_first_sale();
+$potential_loss = get_potential_loss();
+
+// Calculate total potential loss
+$total_potential_loss = 0;
+foreach ($potential_loss as $item) {
+    $total_potential_loss += $item['potential_loss'];
 }
 
 // Get filter parameters
@@ -102,7 +219,6 @@ function get_sales_by_month($year) {
             GROUP BY MONTH(date)";
     return find_by_sql($sql);
 }
-
 
 if ($filter == 'year') {
     $chart_title = 'Yearly Sales & Items Sold ('.date('Y').')';
@@ -545,6 +661,14 @@ if ($filter == 'year') {
             color: #52c41a;
         }
 
+        .text-danger {
+            color: #f5222d;
+        }
+
+        .text-warning {
+            color: #faad14;
+        }
+
         .alert {
             padding: 15px;
             border-radius: 6px;
@@ -562,6 +686,12 @@ if ($filter == 'year') {
             background-color: #fff1f0;
             border: 1px solid #ffa39e;
             color: #f5222d;
+        }
+
+        .alert-warning {
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            color: #faad14;
         }
 
         .grid-container {
@@ -584,6 +714,91 @@ if ($filter == 'year') {
             color: var(--primary);
             margin-top: 10px;
         }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 4px;
+        }
+
+        .badge-success {
+            background-color: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        .badge-warning {
+            background-color: #fffbe6;
+            color: #faad14;
+            border: 1px solid #ffe58f;
+        }
+
+        .badge-danger {
+            background-color: #fff1f0;
+            color: #f5222d;
+            border: 1px solid #ffa39e;
+        }
+
+        .analytics-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .analytics-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .analytics-tab:hover {
+            color: var(--primary);
+        }
+
+        .analytics-tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            font-weight: 500;
+        }
+
+        .analytics-content {
+            display: none;
+        }
+
+        .analytics-content.active {
+            display: block;
+        }
+
+        .scrollable-table {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: var(--primary);
+        }
+
+        .stock-level {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stock-level .progress-container {
+            flex-grow: 1;
+        }
     </style>
 </head>
 <body>
@@ -605,8 +820,6 @@ if ($filter == 'year') {
                     <img src="uploads/users/<?php echo isset($user['image']) ? $user['image'] : 'default.jpg'; ?>" alt="User Image">
                 </div>
             </div>
-
-            <?php echo display_msg($msg); ?>
 
             <!-- Stats Cards -->
             <div class="stats-container">
@@ -656,125 +869,349 @@ if ($filter == 'year') {
                 <h3><i class="fas fa-warehouse"></i> Inventory Value</h3>
                 <div class="inventory-value">₱<?php echo number_format($inventory_value, 2); ?></div>
             </div>
-            <br>
-           
-            <!-- Filter Container -->
-            <div class="filter-container">
-                <form id="filterForm" method="get" action="" class="filter-form">
-                    <div class="filter-group">
-                        <label for="filter">Filter By:</label>
-                        <select name="filter" id="filter" class="filter-select">
-                            <option value="year" <?= ($filter == 'year') ? 'selected' : '' ?>>This Year</option>
-                            <option value="month" <?= ($filter == 'month') ? 'selected' : '' ?>>This Month</option>
-                            <option value="day" <?= ($filter == 'day') ? 'selected' : '' ?>>Today</option>
-                            <option value="custom" <?= ($filter == 'custom') ? 'selected' : '' ?>>Custom Date Range</option>
-                        </select>
-                    </div>
-                    
-                    <div id="dateRangeSelector" class="date-range-selector" style="<?= ($filter == 'custom') ? 'display: flex;' : 'display: none;' ?>">
-                        <label for="start_date">From:</label>
-                        <input type="date" name="start_date" id="start_date" class="date-input"
-                               value="<?= $start_date ?>" max="<?= date('Y-m-d') ?>">
-                        <label for="end_date">To:</label>
-                        <input type="date" name="end_date" id="end_date" class="date-input"
-                               value="<?= $end_date ?>" max="<?= date('Y-m-d') ?>">
-                        <button type="button" id="applyFilter" class="btn btn-primary">Apply</button>
-                    </div>
-                </form>
+            
+            <!-- Analytics Tabs -->
+            <div class="analytics-tabs">
+                <div class="analytics-tab active" onclick="showAnalyticsTab('sales')">Sales Analytics</div>
+                <div class="analytics-tab" onclick="showAnalyticsTab('inventory')">Inventory Analytics</div>
+                <div class="analytics-tab" onclick="showAnalyticsTab('profit')">Profit Analytics</div>
             </div>
             
-            <!-- Charts Row -->
-            <div class="grid-container">
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-chart-line"></i> Sales Performance</h3>
+            <!-- Sales Analytics Tab -->
+            <div id="sales-analytics" class="analytics-content active">
+                <!-- Filter Container -->
+                <div class="filter-container">
+                    <form id="filterForm" method="get" action="" class="filter-form">
+                        <div class="filter-group">
+                            <label for="filter">Filter By:</label>
+                            <select name="filter" id="filter" class="filter-select">
+                                <option value="year" <?= ($filter == 'year') ? 'selected' : '' ?>>This Year</option>
+                                <option value="month" <?= ($filter == 'month') ? 'selected' : '' ?>>This Month</option>
+                                <option value="day" <?= ($filter == 'day') ? 'selected' : '' ?>>Today</option>
+                                <option value="custom" <?= ($filter == 'custom') ? 'selected' : '' ?>>Custom Date Range</option>
+                            </select>
+                        </div>
+                        
+                        <div id="dateRangeSelector" class="date-range-selector" style="<?= ($filter == 'custom') ? 'display: flex;' : 'display: none;' ?>">
+                            <label for="start_date">From:</label>
+                            <input type="date" name="start_date" id="start_date" class="date-input"
+                                   value="<?= $start_date ?>" max="<?= date('Y-m-d') ?>">
+                            <label for="end_date">To:</label>
+                            <input type="date" name="end_date" id="end_date" class="date-input"
+                                   value="<?= $end_date ?>" max="<?= date('Y-m-d') ?>">
+                            <button type="button" id="applyFilter" class="btn btn-primary">Apply</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Charts Row -->
+                <div class="grid-container">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Sales Performance</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="salesChart"></canvas>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="salesChart"></canvas>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-bar"></i> Items Sold</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="itemsSoldChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Category Sales -->
                 <div class="card">
                     <div class="card-header">
-                        <h3><i class="fas fa-chart-bar"></i> Items Sold</h3>
+                        <h3><i class="fas fa-chart-pie"></i> Category-wise Sales Distribution</h3>
                     </div>
                     <div class="card-body">
                         <div class="chart-container">
-                            <canvas id="itemsSoldChart"></canvas>
+                            <canvas id="categorySalesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tables Row -->
+                <div class="grid-container">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-star"></i> Top Selling Products</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Units Sold</th>
+                                            <th>Total Sales</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php 
+                                    $grandTotalSold = 0;
+                                    $grandTotalSales = 0;
+                                    
+                                    foreach ($products_sold as $product): 
+                                        $name = isset($product['name']) ? remove_junk(first_character($product['name'])) : 'Unknown Product';
+                                        $totalSold = isset($product['totalSold']) ? (int)$product['totalSold'] : 0;
+                                        $totalSales = isset($product['totalSales']) ? (float)$product['totalSales'] : 0;
+                                        
+                                        $grandTotalSold += $totalSold;
+                                        $grandTotalSales += $totalSales;
+                                    ?>
+                                        <tr>
+                                            <td><?= $name ?></td>
+                                            <td><?= $totalSold ?></td>
+                                            <td>₱<?= number_format($totalSales, 2) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    <tr style="background-color: #f5f7fb; font-weight: 600;">
+                                        <td>Grand Total</td>
+                                        <td><?= $grandTotalSold ?></td>
+                                        <td>₱<?= number_format($grandTotalSales, 2) ?></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-clock"></i> Recently Added Products</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Category</th>
+                                            <th>Sale Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($recent_products as $recent_product): ?>
+                                            <tr>
+                                                <td><?= remove_junk(first_character($recent_product['name'])) ?></td>
+                                                <td><?= remove_junk(first_character($recent_product['categorie'])) ?></td>
+                                                <td class="text-success">₱<?= (int)$recent_product['sale_price'] ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Tables Row -->
-            <div class="grid-container">
+            <!-- Inventory Analytics Tab -->
+            <div id="inventory-analytics" class="analytics-content">
+                <!-- Stock Levels -->
                 <div class="card">
                     <div class="card-header">
-                        <h3><i class="fas fa-star"></i> Top Selling Products</h3>
+                        <h3><i class="fas fa-boxes"></i> Stock Level Overview</h3>
                     </div>
-                        <div class="card-body">
-                        <div class="table-container">
+                    <div class="card-body">
+                                                <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> Products with low stock levels are highlighted below.
+                        </div>
+                        <div class="scrollable-table">
                             <table class="table">
                                 <thead>
                                     <tr>
                                         <th>Product</th>
-                                        <th>Units Sold</th>
-                                        <th>Total Sales</th>
+                                        <th>Current Stock</th>
+                                        <th>Minimum Required</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                <?php 
-                                $grandTotalSold = 0;
-                                $grandTotalSales = 0;
-                                
-                                foreach ($products_sold as $product): 
-                                    $name = isset($product['name']) ? remove_junk(first_character($product['name'])) : 'Unknown Product';
-                                    $totalSold = isset($product['totalSold']) ? (int)$product['totalSold'] : 0;
-                                    $totalSales = isset($product['totalSales']) ? (float)$product['totalSales'] : 0;
-                                    
-                                    $grandTotalSold += $totalSold;
-                                    $grandTotalSales += $totalSales;
-                                ?>
+                                    <?php foreach ($stock_levels as $product): 
+                                        $status = '';
+                                        $badge_class = '';
+                                        
+                                        if ($product['quantity'] <= 0) {
+                                            $status = 'Out of Stock';
+                                            $badge_class = 'badge-danger';
+                                        } elseif ($product['quantity'] < $product['min_quantity']) {
+                                            $status = 'Low Stock';
+                                            $badge_class = 'badge-warning';
+                                        } else {
+                                            $status = 'In Stock';
+                                            $badge_class = 'badge-success';
+                                        }
+                                        
+                                        $progress = ($product['min_quantity'] > 0) ? 
+                                            min(100, ($product['quantity'] / $product['min_quantity']) * 100) : 
+                                            100;
+                                    ?>
                                     <tr>
-                                        <td><?= $name ?></td>
-                                        <td><?= $totalSold ?></td>
-                                        <td>₱<?= number_format($totalSales, 2) ?></td>
+                                        <td><?= remove_junk($product['name']) ?></td>
+                                        <td>
+                                            <div class="stock-level">
+                                                <?= (int)$product['quantity'] ?>
+                                                <div class="progress-container">
+                                                    <div class="progress-bar" style="width: <?= $progress ?>%; 
+                                                        <?= $progress < 100 ? 'background-color: var(--danger);' : '' ?>"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><?= (int)$product['min_quantity'] ?></td>
+                                        <td><span class="badge <?= $badge_class ?>"><?= $status ?></span></td>
                                     </tr>
-                                <?php endforeach; ?>
-                                <tr style="background-color: #f5f7fb; font-weight: 600;">
-                                    <td>Grand Total</td>
-                                    <td><?= $grandTotalSold ?></td>
-                                    <td>₱<?= number_format($grandTotalSales, 2) ?></td>
-                                </tr>
+                                    <?php endforeach; ?>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Unsold/Slow-Moving Products -->
                 <div class="card">
                     <div class="card-header">
-                        <h3><i class="fas fa-clock"></i> Recently Added Products</h3>
+                        <h3><i class="fas fa-hourglass-half"></i> Unsold / Slow-Moving Products</h3>
                     </div>
                     <div class="card-body">
-                        <div class="table-container">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> These products have not been sold in the last 90 days or have never been sold.
+                        </div>
+                        <div class="scrollable-table">
                             <table class="table">
                                 <thead>
                                     <tr>
-                                        <th>Title</th>
-                                        <th>Category</th>
-                                        <th>Sale Price</th>
+                                        <th>Product</th>
+                                        <th>Current Stock</th>
+                                        <th>Last Sold Date</th>
+                                        <th>Days Unsold</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($recent_products as $recent_product): ?>
-                                        <tr>
-                                            <td><?= remove_junk(first_character($recent_product['name'])) ?></td>
-                                            <td><?= remove_junk(first_character($recent_product['categorie'])) ?></td>
-                                            <td class="text-success">₱<?= (int)$recent_product['sale_price'] ?></td>
-                                        </tr>
+                                    <?php foreach ($unsold_products as $product): 
+                                        $days_unsold = isset($product['days_unsold']) ? (int)$product['days_unsold'] : 'Never';
+                                        $last_sold = isset($product['last_sold_date']) ? 
+                                            date('M j, Y', strtotime($product['last_sold_date'])) : 'Never';
+                                    ?>
+                                    <tr>
+                                        <td><?= remove_junk($product['name']) ?></td>
+                                        <td><?= (int)$product['quantity'] ?></td>
+                                        <td><?= $last_sold ?></td>
+                                        <td><?= is_numeric($days_unsold) ? $days_unsold . ' days' : $days_unsold ?></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Potential Loss from Unsold Items -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-money-bill-wave"></i> Potential Revenue Loss from Unsold Items</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i> Total potential loss: <strong>₱<?= number_format($total_potential_loss, 2) ?></strong>
+                        </div>
+                        <div class="scrollable-table">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Buy Price</th>
+                                        <th>Potential Loss</th>
+                                        <th>Last Sold</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($potential_loss as $product): 
+                                        $last_sold = isset($product['last_sold_date']) ? 
+                                            date('M j, Y', strtotime($product['last_sold_date'])) : 'Never';
+                                    ?>
+                                    <tr>
+                                        <td><?= remove_junk($product['name']) ?></td>
+                                        <td><?= (int)$product['quantity'] ?></td>
+                                        <td>₱<?= number_format($product['buy_price'], 2) ?></td>
+                                        <td class="text-danger">₱<?= number_format($product['potential_loss'], 2) ?></td>
+                                        <td><?= $last_sold ?></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profit Analytics Tab -->
+            <div id="profit-analytics" class="analytics-content">
+                <!-- Profit Margins -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-line"></i> Profit Margin per Product</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="profitMarginChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Time to First Sale -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-history"></i> Average Time from Product Added to First Sale</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="timeToFirstSaleChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profit Margins Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-percentage"></i> Detailed Profit Margins</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="scrollable-table">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Buy Price</th>
+                                        <th>Sell Price</th>
+                                        <th>Profit</th>
+                                        <th>Margin %</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($profit_margins as $product): 
+                                        $margin_class = ($product['margin_percentage'] > 50) ? 'text-success' : 
+                                                       (($product['margin_percentage'] > 20) ? 'text-warning' : 'text-danger');
+                                    ?>
+                                    <tr>
+                                        <td><?= remove_junk($product['name']) ?></td>
+                                        <td>₱<?= number_format($product['buy_price'], 2) ?></td>
+                                        <td>₱<?= number_format($product['sale_price'], 2) ?></td>
+                                        <td>₱<?= number_format($product['profit'], 2) ?></td>
+                                        <td class="<?= $margin_class ?>"><?= $product['margin_percentage'] ?>%</td>
+                                    </tr>
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
@@ -839,13 +1276,44 @@ if ($filter == 'year') {
             filterForm.submit();
         });
         
-        // Initialize charts
+        // Tab switching functionality
+        window.showAnalyticsTab = function(tabName) {
+            document.querySelectorAll('.analytics-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.analytics-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelector(`.analytics-tab[onclick*="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-analytics`).classList.add('active');
+        };
+        
+        // Initialize charts data
         const salesLabels = <?= json_encode($labels) ?>;
         const salesData = <?= json_encode($sales_values) ?>;
         const itemSoldData = <?= json_encode($item_sold_values) ?>;
         const xAxisTitle = <?= json_encode(
             $filter == 'year' ? 'Month' : ($filter == 'month' ? 'Day' : ($filter == 'day' ? 'Hour' : 'Date'))
         ) ?>;
+        
+        // Category Sales Data
+        const categoryLabels = <?= json_encode(array_column($category_sales, 'category')) ?>;
+        const categorySalesData = <?= json_encode(array_column($category_sales, 'total_sales')) ?>;
+        const categoryProductsSold = <?= json_encode(array_column($category_sales, 'products_sold')) ?>;
+        
+        // Profit Margin Data
+        const profitLabels = <?= json_encode(array_slice(array_column($profit_margins, 'name'), 0, 15)) ?>;
+        const profitData = <?= json_encode(array_slice(array_column($profit_margins, 'profit'), 0, 15)) ?>;
+        const marginData = <?= json_encode(array_slice(array_column($profit_margins, 'margin_percentage'), 0, 15)) ?>;
+        
+        // Time to First Sale Data
+        const timeToSaleLabels = <?= json_encode(array_column($time_to_first_sale, 'name')) ?>;
+        const timeToSaleData = <?= json_encode(array_column($time_to_first_sale, 'days_to_first_sale')) ?>;
+        
+        // Average Daily Sales Data
+        const avgDailyLabels = <?= json_encode(array_column($avg_daily_sales, 'day')) ?>;
+        const avgDailyData = <?= json_encode(array_column($avg_daily_sales, 'avg_sales')) ?>;
         
         // Sales Chart configuration
         const salesConfig = {
@@ -927,19 +1395,184 @@ if ($filter == 'year') {
             }
         };
         
+        // Category Sales Chart configuration
+        const categorySalesConfig = {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categorySalesData,
+                    backgroundColor: [
+                        'rgba(67, 97, 238, 0.6)',
+                        'rgba(72, 149, 239, 0.6)',
+                        'rgba(76, 201, 240, 0.6)',
+                        'rgba(248, 37, 133, 0.6)',
+                        'rgba(243, 104, 224, 0.6)',
+                        'rgba(102, 16, 242, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                    ],
+                    borderColor: [
+                        'rgba(67, 97, 238, 1)',
+                        'rgba(72, 149, 239, 1)',
+                        'rgba(76, 201, 240, 1)',
+                        'rgba(248, 37, 133, 1)',
+                        'rgba(243, 104, 224, 1)',
+                        'rgba(102, 16, 242, 1)',
+                        'rgba(153, 102, 255, 1)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ₱${value.toFixed(2)} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        // Profit Margin Chart configuration
+        const profitMarginConfig = {
+            type: 'bar',
+            data: {
+                labels: profitLabels,
+                datasets: [
+                    {
+                        label: 'Profit (₱)',
+                        data: profitData,
+                        backgroundColor: 'rgba(76, 201, 240, 0.6)',
+                        borderColor: 'rgba(76, 201, 240, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Margin (%)',
+                        data: marginData,
+                        backgroundColor: 'rgba(102, 16, 242, 0.6)',
+                        borderColor: 'rgba(102, 16, 242, 1)',
+                        borderWidth: 1,
+                        type: 'line',
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label.includes('Profit')) {
+                                    return `${label}: ₱${context.raw.toFixed(2)}`;
+                                } else {
+                                    return `${label}: ${context.raw.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Profit (₱)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Margin (%)' },
+                        grid: { drawOnChartArea: false },
+                        min: 0,
+                        max: 100
+                    }
+                }
+            }
+        };
+        
+        // Time to First Sale Chart configuration
+        const timeToFirstSaleConfig = {
+            type: 'bar',
+            data: {
+                labels: timeToSaleLabels,
+                datasets: [{
+                    label: 'Days from Product Added to First Sale',
+                    data: timeToSaleData,
+                    backgroundColor: 'rgba(248, 37, 133, 0.6)',
+                    borderColor: 'rgba(248, 37, 133, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.raw} Days`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Days to First Sale' }
+                    }
+                }
+            }
+        };
+        
         // Create charts
         const salesCtx = document.getElementById('salesChart').getContext('2d');
         const itemsSoldCtx = document.getElementById('itemsSoldChart').getContext('2d');
+        const categorySalesCtx = document.getElementById('categorySalesChart').getContext('2d');
+        const profitMarginCtx = document.getElementById('profitMarginChart').getContext('2d');
+        const timeToFirstSaleCtx = document.getElementById('timeToFirstSaleChart').getContext('2d');
         
         let salesChart = new Chart(salesCtx, salesConfig);
         let itemsSoldChart = new Chart(itemsSoldCtx, itemsSoldConfig);
+        let categorySalesChart = new Chart(categorySalesCtx, categorySalesConfig);
+        let profitMarginChart = new Chart(profitMarginCtx, profitMarginConfig);
+        let timeToFirstSaleChart = new Chart(timeToFirstSaleCtx, timeToFirstSaleConfig);
         
         // Update charts when window is resized
         window.addEventListener('resize', function() {
             salesChart.destroy();
             itemsSoldChart.destroy();
+            categorySalesChart.destroy();
+            profitMarginChart.destroy();
+            timeToFirstSaleChart.destroy();
+            
             salesChart = new Chart(salesCtx, salesConfig);
             itemsSoldChart = new Chart(itemsSoldCtx, itemsSoldConfig);
+            categorySalesChart = new Chart(categorySalesCtx, categorySalesConfig);
+            profitMarginChart = new Chart(profitMarginCtx, profitMarginConfig);
+            timeToFirstSaleChart = new Chart(timeToFirstSaleCtx, timeToFirstSaleConfig);
         });
     });
     </script>

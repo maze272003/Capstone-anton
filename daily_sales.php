@@ -6,66 +6,6 @@ page_require_level(3);
 $year  = date('Y');
 $month = date('m');
 $sales = dailySales($year, $month);
-
-// Initialize cart if not exists
-if(!isset($_SESSION['cart'])) {
-    $_SESSION['cart'] = array();
-}
-
-// Add to cart functionality
-if(isset($_POST['add_to_cart'])) {
-    $product_id = (int)$_POST['product_id'];
-    $quantity = (int)$_POST['quantity'];
-    
-    // Check if product exists in inventory
-    $product = find_by_id('products', $product_id);
-    if($product) {
-        // Check if product already in cart
-        $found = false;
-        foreach($_SESSION['cart'] as &$item) {
-            if($item['id'] == $product_id) {
-                $item['quantity'] += $quantity;
-                $found = true;
-                break;
-            }
-        }
-        
-        if(!$found) {
-            $_SESSION['cart'][] = array(
-                'id' => $product_id,
-                'name' => $product['name'],
-                'quantity' => $quantity,
-                'sale_price' => $product['sale_price']
-            );
-        }
-        
-        $session->msg('s', "Product added to cart");
-    } else {
-        $session->msg('d', "Product not found");
-    }
-}
-
-// Remove from cart functionality
-if(isset($_GET['remove_from_cart'])) {
-    $product_id = (int)$_GET['remove_from_cart'];
-    
-    foreach($_SESSION['cart'] as $key => $item) {
-        if($item['id'] == $product_id) {
-            unset($_SESSION['cart'][$key]);
-            break;
-        }
-    }
-    
-    // Reindex array
-    $_SESSION['cart'] = array_values($_SESSION['cart']);
-    $session->msg('s', "Product removed from cart");
-}
-
-// Calculate cart total
-$cart_total = 0;
-foreach($_SESSION['cart'] as $item) {
-    $cart_total += $item['quantity'] * $item['sale_price'];
-}
 ?>
 
 <!DOCTYPE html>
@@ -164,183 +104,8 @@ foreach($_SESSION['cart'] as $item) {
         .main-content {
             flex: 1;
             margin-left: 240px;
-            padding: 20px;
+            padding: 30px;
             transition: margin-left 0.3s;
-        }
-        
-        /* Cart Sidebar Styles */
-        .cart-sidebar {
-            width: 320px;
-            background: white;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.05);
-            padding: 20px;
-            height: 100vh;
-            position: fixed;
-            right: -320px;
-            top: 0;
-            transition: right 0.3s;
-            z-index: 99;
-            overflow-y: auto;
-        }
-        
-        .cart-sidebar.active {
-            right: 0;
-        }
-        
-        .cart-sidebar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--light-gray);
-        }
-        
-        .cart-sidebar-header h3 {
-            color: var(--primary);
-            font-size: 18px;
-        }
-        
-        .close-cart {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: var(--gray);
-        }
-        
-        .cart-items {
-            margin-bottom: 20px;
-        }
-        
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--light-gray);
-        }
-        
-        .cart-item-info {
-            flex: 1;
-        }
-        
-        .cart-item-name {
-            font-weight: 500;
-            margin-bottom: 5px;
-        }
-        
-        .cart-item-price {
-            color: var(--gray);
-            font-size: 14px;
-        }
-        
-        .cart-item-quantity {
-            display: flex;
-            align-items: center;
-            margin: 0 15px;
-        }
-        
-        .cart-item-quantity input {
-            width: 40px;
-            text-align: center;
-            border: 1px solid var(--light-gray);
-            border-radius: 4px;
-            padding: 5px;
-        }
-        
-        .remove-item {
-            color: var(--danger);
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        .cart-total {
-            padding: 15px 0;
-            border-top: 1px solid var(--light-gray);
-            border-bottom: 1px solid var(--light-gray);
-            margin-bottom: 15px;
-        }
-        
-        .cart-total h4 {
-            display: flex;
-            justify-content: space-between;
-            font-size: 16px;
-        }
-        
-        .cart-total-amount {
-            color: var(--primary);
-            font-weight: 600;
-        }
-        
-        .cart-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .btn-checkout {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.3s;
-        }
-        
-        .btn-checkout:hover {
-            background-color: var(--secondary);
-        }
-        
-        .btn-continue {
-            background-color: var(--light-gray);
-            color: var(--dark);
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.3s;
-        }
-        
-        .btn-continue:hover {
-            background-color: #d1d7e0;
-        }
-        
-        .cart-toggle {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            background-color: var(--primary);
-            color: white;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            z-index: 98;
-        }
-        
-        .cart-count {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--danger);
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
         }
         
         .header {
@@ -405,6 +170,7 @@ foreach($_SESSION['cart'] as $item) {
             padding: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             text-align: center;
+            margin-top: 20px;
         }
         
         .total-sales h3 {
@@ -424,6 +190,7 @@ foreach($_SESSION['cart'] as $item) {
             position: relative;
             width: 250px;
             margin-left: auto;
+            margin-bottom: 20px;
         }
         
         .search-input {
@@ -484,111 +251,6 @@ foreach($_SESSION['cart'] as $item) {
             color: var(--primary);
         }
         
-        /* Checkout Modal */
-        .modal-content {
-            border-radius: 10px;
-            border: none;
-            box-shadow: 0 5px 30px rgba(0,0,0,0.2);
-        }
-        
-        .modal-header {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 15px 20px;
-        }
-        
-        .modal-body {
-            padding: 20px;
-        }
-        
-        .modal-footer {
-            border-top: 1px solid var(--light-gray);
-            padding: 15px 20px;
-        }
-        
-        /* Product Grid */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .product-card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        
-        .product-image {
-            height: 180px;
-            background-color: #f5f7fb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .product-image img {
-            max-height: 100%;
-            max-width: 100%;
-            object-fit: contain;
-        }
-        
-        .product-info {
-            padding: 15px;
-        }
-        
-        .product-name {
-            font-weight: 500;
-            margin-bottom: 5px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .product-price {
-            color: var(--primary);
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        
-        .product-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .quantity-input {
-            width: 60px;
-            padding: 8px;
-            border: 1px solid var(--light-gray);
-            border-radius: 5px;
-            text-align: center;
-        }
-        
-        .add-to-cart {
-            flex: 1;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        
-        .add-to-cart:hover {
-            background-color: var(--secondary);
-        }
-        
         /* Responsive Design */
         @media (max-width: 768px) {
             .sidebar {
@@ -612,6 +274,7 @@ foreach($_SESSION['cart'] as $item) {
             
             .main-content {
                 margin-left: 70px;
+                padding: 15px;
             }
             
             .chart-container {
@@ -626,10 +289,6 @@ foreach($_SESSION['cart'] as $item) {
             .header {
                 flex-direction: column;
                 align-items: flex-start;
-            }
-            
-            .cart-sidebar {
-                width: 280px;
             }
         }
     </style>
@@ -687,21 +346,6 @@ foreach($_SESSION['cart'] as $item) {
 
             <?php echo display_msg($msg); ?>
 
-            <!-- Search Bar -->
-            <div class="search-container">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" class="search-input" placeholder="Search products..." id="productSearch">
-            </div>
-
-            <!-- Category Navigation -->
-            <div class="category-nav" id="categoryNav">
-                <a href="#demo" class="active">Demo</a>
-                <a href="#external">External</a>
-                <a href="#finished-goods">Finished Goods</a>
-                <a href="#raw-materials">Raw Materials</a>
-                <a href="#spare-parts">Spare Parts</a>
-            </div>
-
             <!-- Sales Chart -->
             <div class="chart-section">
                 <div class="section-header">
@@ -716,100 +360,19 @@ foreach($_SESSION['cart'] as $item) {
             <div class="total-sales">
                 <h3>Total Sales This Month</h3>
                 <h2>₱<?php echo number_format(array_sum(array_column($sales, 'total_saleing_price')), 2); ?></h2>
-                <button class="btn btn-primary" data-toggle="modal" data-target="#checkoutModal" style="margin-top: 15px;">
-                    <i class="fas fa-shopping-cart"></i> Checkout
-                </button>
             </div>
         </main>
-
-        <!-- Cart Sidebar -->
-        <aside class="cart-sidebar" id="cartSidebar">
-            <div class="cart-sidebar-header">
-                <h3>Your Cart</h3>
-                <button class="close-cart" id="closeCart">&times;</button>
-            </div>
-            
-            <div class="cart-items">
-                <?php if(empty($_SESSION['cart'])): ?>
-                    <p>Your cart is empty</p>
-                <?php else: ?>
-                    <?php foreach($_SESSION['cart'] as $item): ?>
-                        <div class="cart-item">
-                            <div class="cart-item-info">
-                                <div class="cart-item-name"><?php echo $item['name']; ?></div>
-                                <div class="cart-item-price">₱<?php echo number_format($item['sale_price'], 2); ?></div>
-                            </div>
-                            <div class="cart-item-quantity">
-                                <input type="number" value="<?php echo $item['quantity']; ?>" min="1" 
-                                    onchange="updateCartQuantity(<?php echo $item['id']; ?>, this.value)">
-                            </div>
-                            <button class="remove-item" onclick="removeFromCart(<?php echo $item['id']; ?>)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
-            
-            <div class="cart-total">
-                <h4>Total: <span class="cart-total-amount">₱<?php echo number_format($cart_total, 2); ?></span></h4>
-            </div>
-            
-            <div class="cart-actions">
-                <button class="btn-checkout" data-toggle="modal" data-target="#checkoutModal" onclick="closeCart()">
-                    Proceed to Checkout
-                </button>
-                <button class="btn-continue" onclick="closeCart()">
-                    Continue Shopping
-                </button>
-            </div>
-        </aside>
-
-        <!-- Cart Toggle Button -->
-        <div class="cart-toggle" id="cartToggle">
-            <i class="fas fa-shopping-cart"></i>
-            <?php if(count($_SESSION['cart']) > 0): ?>
-                <span class="cart-count"><?php echo count($_SESSION['cart']); ?></span>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <!-- Checkout Modal -->
-    <div class="modal fade" id="checkoutModal" tabindex="-1" role="dialog" aria-labelledby="checkoutModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="checkoutModalLabel">Confirm Checkout</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to proceed with checkout?</p>
-                    <p>Total Amount: ₱<?php echo number_format($cart_total, 2); ?></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="processCheckout()">Confirm Checkout</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Chart.js Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- jQuery and Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const ctx = document.getElementById('dailySalesChart').getContext('2d');
             const chartContainer = document.querySelector('.chart-container');
-            
-            // Set fixed dimensions
-            chartContainer.style.height = '400px';
-            chartContainer.style.width = '100%';
             
             // Create chart
             const chart = new Chart(ctx, {
@@ -890,19 +453,6 @@ foreach($_SESSION['cart'] as $item) {
                 }
             });
 
-            // Cart functionality
-            const cartSidebar = document.getElementById('cartSidebar');
-            const cartToggle = document.getElementById('cartToggle');
-            const closeCartBtn = document.getElementById('closeCart');
-            
-            cartToggle.addEventListener('click', function() {
-                cartSidebar.classList.add('active');
-            });
-            
-            closeCartBtn.addEventListener('click', function() {
-                cartSidebar.classList.remove('active');
-            });
-            
             // Smooth category navigation
             document.querySelectorAll('.category-nav a').forEach(anchor => {
                 anchor.addEventListener('click', function(e) {
@@ -913,21 +463,11 @@ foreach($_SESSION['cart'] as $item) {
                         a.classList.remove('active');
                     });
                     this.classList.add('active');
-                    
-                    // Scroll to section
-                    const targetId = this.getAttribute('href');
-                    const targetElement = document.querySelector(targetId);
-                    if (targetElement) {
-                        window.scrollTo({
-                            top: targetElement.offsetTop - 100,
-                            behavior: 'smooth'
-                        });
-                    }
                 });
             });
 
             // Search functionality
-            document.getElementById('productSearch').addEventListener('input', function() {
+            document.getElementById('salesSearch').addEventListener('input', function() {
                 const searchTerm = this.value.toLowerCase();
                 // Implement your search logic here
                 console.log('Searching for:', searchTerm);
@@ -938,58 +478,6 @@ foreach($_SESSION['cart'] as $item) {
                 chart.resize();
             });
         });
-
-        function openCart() {
-            document.getElementById('cartSidebar').classList.add('active');
-        }
-        
-        function closeCart() {
-            document.getElementById('cartSidebar').classList.remove('active');
-        }
-        
-        function removeFromCart(productId) {
-            window.location.href = '?remove_from_cart=' + productId;
-        }
-        
-        function updateCartQuantity(productId, quantity) {
-            if(quantity < 1) quantity = 1;
-            
-            // Submit form to update quantity
-            const form = document.createElement('form');
-            form.method = 'post';
-            form.action = '';
-            
-            const inputId = document.createElement('input');
-            inputId.type = 'hidden';
-            inputId.name = 'product_id';
-            inputId.value = productId;
-            form.appendChild(inputId);
-            
-            const inputQty = document.createElement('input');
-            inputQty.type = 'hidden';
-            inputQty.name = 'quantity';
-            inputQty.value = quantity;
-            form.appendChild(inputQty);
-            
-            document.body.appendChild(form);
-            form.submit();
-        }
-        
-        function processCheckout() {
-            // Implement your checkout logic here
-            alert('Checkout completed successfully!');
-            
-            // Clear the cart after checkout
-            fetch('clear_cart.php')
-                .then(response => response.json())
-                .then(data => {
-                    if(data.success) {
-                        window.location.reload();
-                    }
-                });
-            
-            $('#checkoutModal').modal('hide');
-        }
     </script>
 </body>
 </html>

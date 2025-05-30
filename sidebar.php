@@ -68,7 +68,7 @@
                         <li><a href="sales_report.php"><i class="fa-solid fa-calendar-days"></i>Selacted date Sales</a></li>
                         <li><a href="transaction_history.php"><i class="fas fa-history"></i> Transaction History</a></li>
                         <!-- <li><a href="reports.php"><i class="fas fa-chart-bar"></i> Reports</a></li> -->
-                
+                    
                     <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
             </div>

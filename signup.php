@@ -34,17 +34,18 @@ function send_otp_email($email, $otp) {
     $mail = new PHPMailer(true);
     
     try {
+        
         // SMTP Configuration
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com'; // Use Gmail SMTP
         $mail->SMTPAuth = true;
-        $mail->Username = 'warpgate27@gmail.com';
-        $mail->Password = 'kiai dqav srik yqvd';
+        $mail->Username = 'rueda.antonl@gmail.com';
+        $mail->Password = 'qwjd dfzt hmra abct';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
         
         // Email content
-        $mail->setFrom('noreply@SpringBullbars.com', 'SpringBullbars');
+        $mail->setFrom('rueda.antonl@gmail.com', 'SpringBullbars');
         $mail->addAddress($email);
         $mail->isHTML(true);
         $mail->Subject = 'Your OTP Verification Code';

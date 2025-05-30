@@ -804,8 +804,6 @@ while ($product = $products->fetch_assoc()) {
                 </div>
             </div>
 
-            <?php echo display_msg($msg); ?>
-
             <div class="category-nav-container">
                 <div class="category-nav">
                     <?php foreach ($categorized_products as $category => $products): ?>

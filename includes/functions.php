@@ -188,19 +188,5 @@ function get_sales_by_day($month, $year) {
 
   return $data;
 }
-function authenticate_by_email($email, $password) {
-    global $db;
-    $email = $db->escape($email);
-    $sql = "SELECT id, password FROM users WHERE email = '{$email}' LIMIT 1";
-    $result = $db->query($sql);
-    
-    if($db->num_rows($result)) {
-        $user = $db->fetch_assoc($result);
-        $password_request = sha1($password);
-        if($password_request === $user['password']){
-            return $user['id'];
-        }
-    }
-    return false;
-}
+
 ?>

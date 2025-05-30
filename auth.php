@@ -1,5 +1,5 @@
-<?php include_once('includes/load.php'); ?>
 <?php
+include_once('includes/load.php');
 $req_fields = array('username','password' );
 validate_fields($req_fields);
 $username = remove_junk($_POST['username']);
@@ -8,7 +8,7 @@ $password = remove_junk($_POST['password']);
 if(empty($errors)){
 
     // reCAPTCHA verification
-    $recaptcha_secret_key = '6Led0EcrAAAAAHjbjTudy_SKtUGRhtwfhnuSYsAh'; // Replace with your actual Secret Key
+    $recaptcha_secret_key = '6LevqksrAAAAAIiSqyzHQLRUDAnXTxbl95k1Dr3G'; // Replace with your actual Secret Key
     $recaptcha_response = $_POST['g-recaptcha-response'];
 
     $verification_url = 'https://www.google.com/recaptcha/api/siteverify';
