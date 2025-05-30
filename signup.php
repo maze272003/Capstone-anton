@@ -345,7 +345,7 @@ if(isset($_POST['signup'])) {
 </head>
 <body>
 <div class="signup-container">
-        <a href="index.php" class="logo">Shop<span>Sphere</span></a>
+        <a href="index.php" class="logo">Spring<span>BullBars</span></a>
         
         <div class="signup-header">
             <h2>Create Your Account</h2>

@@ -344,35 +344,42 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach($all_users as $a_user): ?>
-                                <tr>
-                                    <td><?php echo count_id();?></td>
-                                    <td><?php echo remove_junk(ucwords($a_user['name']))?></td>
-                                    <td><?php echo remove_junk(ucwords($a_user['username']))?></td>
-                                    <td><?php echo remove_junk(strtolower($a_user['email']))?></td>
-                                    <td><?php echo remove_junk(ucwords($a_user['group_name']))?></td>
-                                    <td>
-                                        <?php if($a_user['status'] === '1'): ?>
-                                            <span class="badge badge-success">
-                                                <span class="status-indicator status-active"></span> Active
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="badge badge-danger">
-                                                <span class="status-indicator status-inactive"></span> Inactive
-                                            </span>
-                                        <?php endif;?>
-                                    </td>
-                                    <td><?php echo read_date($a_user['last_login'])?></td>
-                                    <td class="action-buttons">
-                                        <a href="edit_user.php?id=<?php echo (int)$a_user['id'];?>" class="btn btn-warning" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a href="delete_user.php?id=<?php echo (int)$a_user['id'];?>" class="btn btn-danger" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                <?php endforeach;?>
+                                <?php 
+                                    $count = 1;
+                                    foreach($all_users as $a_user): 
+                                        // Skip admin users (user_level = 1)
+                                        if($a_user['user_level'] == 1) continue;
+                                    ?>
+                                    <tr>
+                                        <td><?php echo $count++; ?></td>
+                                        <td><?php echo remove_junk(ucwords($a_user['name'])); ?></td>
+                                        <td><?php echo remove_junk($a_user['username']); ?></td>
+                                        <td><?php echo remove_junk(strtolower($a_user['email']))?></td>
+                                        <td><?php echo remove_junk(ucwords($a_user['group_name'])); ?></td>
+                                        <td>
+                                            <?php if($a_user['status'] === '1'): ?>
+                                                <span class="badge bg-success">
+                                                    <span class="status-indicator status-active"></span> Active
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="badge bg-danger">
+                                                    <span class="status-indicator status-inactive"></span> Inactive
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?php echo read_date($a_user['last_login']); ?></td>
+                                        <td>
+                                            <a href="edit_user.php?id=<?php echo (int)$a_user['id']; ?>" 
+                                               class="btn btn-sm btn-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="delete_user.php?id=<?php echo (int)$a_user['id']; ?>" 
+                                               class="btn btn-sm btn-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>

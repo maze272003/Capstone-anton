@@ -1222,7 +1222,7 @@
                     </div>
                 </div>
                 
-                <div class="g-recaptcha" id="recaptchaContainer" data-sitekey="6LevqksrAAAAAD5flykbeFpj-Vve7s0DrlFGw1dh"></div>
+                <div class="g-recaptcha" id="recaptchaContainer" data-sitekey="6Le-GFArAAAAAAwIsJ1__RFmKwOPo3poe8azmzTy"></div>
                 <div class="recaptcha-error" id="recaptchaError">Please verify you're not a robot</div>
                 
                 <button type="submit" class="modal-btn" id="loginButton">

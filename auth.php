@@ -8,7 +8,7 @@ $password = remove_junk($_POST['password']);
 if(empty($errors)){
 
     // reCAPTCHA verification
-    $recaptcha_secret_key = '6LevqksrAAAAAIiSqyzHQLRUDAnXTxbl95k1Dr3G'; // Replace with your actual Secret Key
+    $recaptcha_secret_key = '6Le-GFArAAAAAJCMTyB4iW-LAllMPPR1wWeWcIl5'; // Replace with your actual Secret Key
     $recaptcha_response = $_POST['g-recaptcha-response'];
 
     $verification_url = 'https://www.google.com/recaptcha/api/siteverify';
