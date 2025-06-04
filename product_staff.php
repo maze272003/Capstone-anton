@@ -44,11 +44,13 @@ foreach ($products as $product) {
         body {
             background-color: #f5f7fb;
             color: var(--dark);
+            overflow-x: hidden;
         }
         
         .dashboard-container {
             display: flex;
             min-height: 100vh;
+            position: relative;
         }
         
         /* Sidebar Styles */
@@ -59,8 +61,10 @@ foreach ($products as $product) {
             padding: 20px 0;
             height: 100vh;
             position: fixed;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             z-index: 100;
+            left: 0;
+            top: 0;
         }
         
         .sidebar-header {
@@ -107,8 +111,10 @@ foreach ($products as $product) {
         /* Main Content Styles */
         .main-content {
             flex: 1;
-            margin-left: 240px;
             padding: 20px;
+            margin-left: 240px;
+            transition: all 0.3s ease;
+            width: calc(100% - 240px);
         }
         
         .header {
@@ -129,6 +135,7 @@ foreach ($products as $product) {
         .user-profile {
             display: flex;
             align-items: center;
+            position: relative;
         }
         
         .user-profile img {
@@ -139,6 +146,16 @@ foreach ($products as $product) {
             object-fit: cover;
         }
         
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--primary);
+            cursor: pointer;
+            margin-left: 15px;
+        }
+        
         /* Category Navigation */
         .category-nav-container {
             background: white;
@@ -146,6 +163,9 @@ foreach ($products as $product) {
             padding: 15px;
             margin-bottom: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         
         .category-nav {
@@ -153,6 +173,7 @@ foreach ($products as $product) {
             overflow-x: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            padding-bottom: 5px;
         }
         
         .category-nav::-webkit-scrollbar {
@@ -177,20 +198,14 @@ foreach ($products as $product) {
         }
         
         /* Search and Filter */
-        .filter-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
         .search-box {
-            flex: 1;
             position: relative;
+            margin-bottom: 20px;
         }
         
         .search-box input {
             width: 100%;
-            padding: 10px 15px 10px 40px;
+            padding: 10px 40px 10px 40px;
             border: 1px solid var(--light-gray);
             border-radius: 8px;
             font-size: 14px;
@@ -211,20 +226,38 @@ foreach ($products as $product) {
             color: var(--gray);
         }
         
+        .clear-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 5px;
+            font-size: 14px;
+        }
+        
+        .clear-btn:hover {
+            color: var(--dark);
+        }
+        
         /* Product Table */
         .table-container {
             background: white;
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            overflow-x: auto;
         }
         
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .section-header h2 {
@@ -235,12 +268,14 @@ foreach ($products as $product) {
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
         }
         
         th, td {
-            padding: 12px 15px;
+            padding: 10px 12px;
             text-align: left;
             border-bottom: 1px solid var(--light-gray);
+            font-size: 14px;
         }
         
         th {
@@ -254,18 +289,19 @@ foreach ($products as $product) {
         }
         
         .product-img {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
             object-fit: cover;
         }
         
         /* Status Badges */
         .badge {
-            padding: 5px 10px;
+            padding: 4px 8px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
+            display: inline-block;
         }
         
         .badge-success {
@@ -278,71 +314,70 @@ foreach ($products as $product) {
             color: #F44336;
         }
         
-        /* Action Buttons */
-        .btn {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--secondary);
-            transform: translateY(-2px);
-        }
-        
-        .btn-success {
-            background-color: #4CAF50;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background-color: #3d8b40;
-            transform: translateY(-2px);
-        }
-        
         /* Responsive Design */
-        @media (max-width: 768px) {
+        @media (max-width: 992px) {
             .sidebar {
-                width: 70px;
-                overflow: hidden;
+                transform: translateX(-100%);
             }
             
-            .sidebar-header h3, .sidebar-menu span {
-                display: none;
-            }
-            
-            .sidebar-menu a {
-                justify-content: center;
-                padding: 15px 0;
-            }
-            
-            .sidebar-menu i {
-                margin-right: 0;
-                font-size: 18px;
+            .sidebar.active {
+                transform: translateX(0);
             }
             
             .main-content {
-                margin-left: 70px;
+                margin-left: 0;
+                width: 100%;
             }
             
-            .filter-container {
-                flex-direction: column;
-            }
-            
-            table {
+            .menu-toggle {
                 display: block;
-                overflow-x: auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .user-profile {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+            
+            .product-img {
+                width: 35px;
+                height: 35px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .category-nav a {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+            
+            .table-container {
+                padding: 10px;
+            }
+            
+            .badge {
+                padding: 3px 6px;
+                font-size: 11px;
             }
         }
     </style>
@@ -356,7 +391,7 @@ foreach ($products as $product) {
             </div>
             <ul class="sidebar-menu">
                 <li>
-                    <a href="home_staff.php">
+                    <a href="home.php">
                         <i class="fas fa-home"></i>
                         <span>Dashboard</span>
                     </a>
@@ -364,7 +399,7 @@ foreach ($products as $product) {
                 <li>
                     <a href="add_sale.php">
                         <i class="fas fa-cart-plus"></i>
-                        <span>Product Bought</span>
+                        <span>Add New Sale</span>
                     </a>
                 </li>
                 <li>
@@ -395,6 +430,9 @@ foreach ($products as $product) {
                 <div class="user-profile">
                     <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['name'] ?? 'Staff'); ?>&background=4361ee&color=fff" alt="User">
                     <span><?php echo $user['name'] ?? 'Staff User'; ?></span>
+                    <button class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
             </div>
 
@@ -411,12 +449,12 @@ foreach ($products as $product) {
                 </div>
             </div>
 
-            <!-- Search and Filter -->
-            <div class="filter-container">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="productSearch" placeholder="Search products...">
-                </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="productSearch" placeholder="Search products...">
+                <button id="clearSearch" class="clear-btn" style="display: none;">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
             <!-- Product Tables by Category -->
@@ -435,7 +473,6 @@ foreach ($products as $product) {
                                 <th>Status</th>
                                 <th>Buy Price</th>
                                 <th>Sell Price</th>
-                                <!-- <th>Actions</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -458,14 +495,6 @@ foreach ($products as $product) {
                                     </td>
                                     <td>₱<?php echo remove_junk($product['buy_price']); ?></td>
                                     <td>₱<?php echo remove_junk($product['sale_price']); ?></td>
-                                    <!-- <td>
-                                        <button class="btn btn-primary">
-                                            <i class="fas fa-plus"></i> Add
-                                        </button>
-                                        <button class="btn btn-success">
-                                            <i class="fas fa-shopping-cart"></i> Buy
-                                        </button>
-                                    </td> -->
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -475,8 +504,17 @@ foreach ($products as $product) {
         </main>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
     $(document).ready(function() {
+        // Mobile menu toggle
+        const menuToggle = document.querySelector('.menu-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+
         // Category navigation smooth scrolling
         $('.category-nav a').on('click', function(e) {
             e.preventDefault();
@@ -490,28 +528,51 @@ foreach ($products as $product) {
             }
         });
         
-        // Product search functionality
+        // Search functionality with clear button
         $('#productSearch').on('input', function() {
-            var searchTerm = $(this).val().toLowerCase();
+            var searchTerm = $(this).val().toLowerCase().trim();
             
-            $('.table-container tbody tr').each(function() {
-                var productName = $(this).find('td:nth-child(3)').text().toLowerCase();
-                if (productName.includes(searchTerm)) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
+            // Show/hide clear button based on input
+            if (searchTerm.length > 0) {
+                $('#clearSearch').show();
+            } else {
+                $('#clearSearch').hide();
+            }
             
-            // Hide empty categories
+            if (searchTerm === '') {
+                // If search is empty, show all rows and containers
+                $('.table-container tbody tr').show();
+                $('.table-container').show();
+                return;
+            }
+            
             $('.table-container').each(function() {
-                var visibleRows = $(this).find('tbody tr:visible').length;
-                if (visibleRows > 0) {
-                    $(this).show();
+                var container = $(this);
+                var foundMatch = false;
+                
+                container.find('tbody tr').each(function() {
+                    var productName = $(this).find('td:nth-child(3)').text().toLowerCase();
+                    if (productName.includes(searchTerm)) {
+                        $(this).show();
+                        foundMatch = true;
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                
+                // Show/hide the entire category based on matches
+                if (foundMatch) {
+                    container.show();
                 } else {
-                    $(this).hide();
+                    container.hide();
                 }
             });
+        });
+        
+        // Clear search button
+        $('#clearSearch').on('click', function() {
+            $('#productSearch').val('').trigger('input');
+            $(this).hide();
         });
         
         // Highlight active category on scroll

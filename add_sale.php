@@ -116,13 +116,16 @@ while ($product = $products->fetch_assoc()) {
         body {
             background-color: #f5f7fb;
             color: var(--dark);
+            overflow-x: hidden;
         }
         
         .dashboard-container {
             display: flex;
             min-height: 100vh;
+            position: relative;
         }
         
+        /* Sidebar Styles */
         .sidebar {
             width: 240px;
             background: white;
@@ -130,8 +133,10 @@ while ($product = $products->fetch_assoc()) {
             padding: 20px 0;
             height: 100vh;
             position: fixed;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             z-index: 100;
+            left: 0;
+            top: 0;
         }
         
         .sidebar-header {
@@ -175,10 +180,13 @@ while ($product = $products->fetch_assoc()) {
             text-align: center;
         }
         
+        /* Main Content Styles */
         .main-content {
             flex: 1;
-            margin-left: 240px;
             padding: 20px;
+            margin-left: 240px;
+            transition: all 0.3s ease;
+            width: calc(100% - 240px);
         }
         
         .header {
@@ -199,6 +207,7 @@ while ($product = $products->fetch_assoc()) {
         .user-profile {
             display: flex;
             align-items: center;
+            position: relative;
         }
         
         .user-profile img {
@@ -209,6 +218,17 @@ while ($product = $products->fetch_assoc()) {
             object-fit: cover;
         }
         
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--primary);
+            cursor: pointer;
+            margin-left: 15px;
+        }
+        
+        /* Category Navigation */
         .category-nav-container {
             background: white;
             border-radius: 10px;
@@ -218,9 +238,6 @@ while ($product = $products->fetch_assoc()) {
             position: sticky;
             top: 0;
             z-index: 10;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
         
         .category-nav {
@@ -228,6 +245,7 @@ while ($product = $products->fetch_assoc()) {
             overflow-x: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            padding-bottom: 5px;
         }
         
         .category-nav::-webkit-scrollbar {
@@ -251,24 +269,26 @@ while ($product = $products->fetch_assoc()) {
             color: var(--primary);
         }
         
+        /* Search and Cart */
         .search-cart-container {
             display: flex;
             align-items: center;
             gap: 15px;
-            margin-left: auto;
+            margin-top: 15px;
         }
         
         .search-box {
             position: relative;
+            flex: 1;
         }
         
         .search-box input {
-            padding: 10px 15px 10px 40px;
+            width: 100%;
+            padding: 10px 40px 10px 40px;
             border: 1px solid var(--light-gray);
             border-radius: 8px;
             font-size: 14px;
             transition: all 0.3s;
-            width: 200px;
         }
         
         .search-box input:focus {
@@ -294,6 +314,7 @@ while ($product = $products->fetch_assoc()) {
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
+            white-space: nowrap;
         }
         
         .cart-btn:hover {
@@ -314,6 +335,7 @@ while ($product = $products->fetch_assoc()) {
             margin-left: 8px;
         }
         
+        /* Product Grid */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -422,6 +444,64 @@ while ($product = $products->fetch_assoc()) {
             opacity: 0.6;
         }
         
+        /* Stock Status */
+        .product-stock {
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .stock-high {
+            color: var(--success);
+        }
+        
+        .stock-low {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .stock-out {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .product-card.low-stock {
+            border: 1px solid var(--danger);
+            position: relative;
+        }
+        
+        .product-card.low-stock::after {
+            content: 'Low Stock';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--danger);
+            color: white;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .product-card.out-of-stock {
+            border: 1px solid var(--danger);
+            position: relative;
+            opacity: 0.7;
+        }
+        
+        .product-card.out-of-stock::after {
+            content: 'Out of Stock';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--danger);
+            color: white;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        /* Cart Sidebar */
         .cart-sidebar {
             position: fixed;
             top: 0;
@@ -457,9 +537,6 @@ while ($product = $products->fetch_assoc()) {
         .close-cart {
             background: none;
             border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
             color: white;
             font-size: 20px;
             cursor: pointer;
@@ -601,62 +678,7 @@ while ($product = $products->fetch_assoc()) {
             display: block;
         }
         
-        .product-stock {
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-        
-        .stock-high {
-            color: var(--success);
-        }
-        
-        .stock-low {
-            color: var(--danger);
-            font-weight: bold;
-        }
-        
-        .stock-out {
-            color: var(--danger);
-            font-weight: bold;
-        }
-        
-        .product-card.low-stock {
-            border: 1px solid var(--danger);
-            position: relative;
-        }
-        
-        .product-card.low-stock::after {
-            content: 'Low Stock';
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: var(--danger);
-            color: white;
-            padding: 3px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-        
-        .product-card.out-of-stock {
-            border: 1px solid var(--danger);
-            position: relative;
-            opacity: 0.7;
-        }
-        
-        .product-card.out-of-stock::after {
-            content: 'Out of Stock';
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: var(--danger);
-            color: white;
-            padding: 3px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-        
+        /* Notification */
         .notification {
             position: fixed;
             top: 20px;
@@ -676,6 +698,7 @@ while ($product = $products->fetch_assoc()) {
             background-color: var(--danger);
         }
         
+        /* Responsive Design */
         @media (max-width: 992px) {
             .cart-sidebar {
                 width: 350px;
@@ -688,41 +711,20 @@ while ($product = $products->fetch_assoc()) {
         
         @media (max-width: 768px) {
             .sidebar {
-                width: 70px;
-                overflow: hidden;
+                transform: translateX(-100%);
             }
             
-            .sidebar-header h3, .sidebar-menu span {
-                display: none;
-            }
-            
-            .sidebar-menu a {
-                justify-content: center;
-                padding: 15px 0;
-            }
-            
-            .sidebar-menu i {
-                margin-right: 0;
-                font-size: 18px;
+            .sidebar.active {
+                transform: translateX(0);
             }
             
             .main-content {
-                margin-left: 70px;
-            }
-            
-            .category-nav-container {
-                flex-direction: column;
-                width: 100%;
-                gap: 10px;
-            }
-            
-            .search-box input {
+                margin-left: 0;
                 width: 100%;
             }
             
-            .cart-btn {
-                width: 100%;
-                justify-content: center;
+            .menu-toggle {
+                display: block;
             }
             
             .product-grid {
@@ -733,9 +735,30 @@ while ($product = $products->fetch_assoc()) {
                 width: 100%;
                 right: -100%;
             }
+            
+            .search-cart-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .cart-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
         
         @media (max-width: 576px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .user-profile {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
             .product-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -752,11 +775,16 @@ while ($product = $products->fetch_assoc()) {
                 padding: 5px 8px;
                 font-size: 11px;
             }
+            
+            .main-content {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h3>Staff Portal</h3>
@@ -795,15 +823,22 @@ while ($product = $products->fetch_assoc()) {
             </ul>
         </aside>
 
+        <!-- Main Content -->
         <main class="main-content">
             <div class="header">
                 <h1>Add New Sale</h1>
                 <div class="user-profile">
                     <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['name'] ?? 'Staff'); ?>&background=4361ee&color=fff" alt="User">
                     <span><?php echo $user['name'] ?? 'Staff User'; ?></span>
+                    <button class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
             </div>
 
+            <?php echo display_msg($msg); ?>
+
+            <!-- Category Navigation -->
             <div class="category-nav-container">
                 <div class="category-nav">
                     <?php foreach ($categorized_products as $category => $products): ?>
@@ -817,7 +852,7 @@ while ($product = $products->fetch_assoc()) {
                     </div>
                     <div class="cart-btn" onclick="toggleCart()">
                         <i class="fas fa-shopping-cart"></i>
-                        Cart <span class="cart-badge" id="cartCount">0</span>
+                        Add Sale <span class="cart-badge" id="cartCount">0</span>
                     </div>
                 </div>
             </div>
@@ -877,16 +912,17 @@ while ($product = $products->fetch_assoc()) {
         </main>
     </div>
 
+    <!-- Cart Sidebar -->
     <div class="overlay" id="cartOverlay"></div>
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
-            <h3>Shopping Cart (<span id="sidebarCartCount">0</span>)</h3>
+            <h3>Add Sale List (<span id="sidebarCartCount">0</span>)</h3>
             <button class="close-cart" onclick="toggleCart()">&times;</button>
         </div>
         <div class="cart-body" id="cartItems">
             <div class="cart-empty">
-                <i class="fas fa-shopping-cart" style="font-size: 40px; margin-bottom: 15px; color: #ccc;"></i>
-                <p>Your cart is empty</p>
+                <i class="fa-solid fa-boxes-stacked" style="font-size: 40px; margin-bottom: 15px; color: #ccc;"></i>
+                <p> empty...</p>
             </div>
         </div>
         <div class="cart-footer">
@@ -898,6 +934,7 @@ while ($product = $products->fetch_assoc()) {
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
     let cart = [];
 
@@ -1120,7 +1157,7 @@ while ($product = $products->fetch_assoc()) {
                     const input = document.createElement('input');
                     input.type = 'hidden';
                     input.name = key;
-                    input.value = value;
+                                        input.value = value;
                     form.appendChild(input);
                 }
             });
@@ -1158,7 +1195,7 @@ while ($product = $products->fetch_assoc()) {
                     productCard.style.display = "";
                     hasVisibleProducts = true;
                 } else {
-                    productCard.style.display =             "none";
+                    productCard.style.display = "none";
                 }
             });
             
@@ -1166,6 +1203,52 @@ while ($product = $products->fetch_assoc()) {
         });
     }
 
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type === 'error' ? 'error' : ''}`;
+        notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                notification.remove();
+            }, 500);
+        }, 3000);
+    }
+
+    // Mobile menu toggle functionality
+    const menuToggle = document.querySelector('.menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+
+    // Close cart when clicking on overlay
+    document.getElementById('cartOverlay').addEventListener('click', toggleCart);
+
+    // Initialize cart display
+    updateCartDisplay();
+
+    // Smooth scrolling for category navigation
+    document.querySelectorAll('.category-nav a').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 100,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // Highlight active category on scroll
     window.addEventListener('scroll', function() {
         const categoryLinks = document.querySelectorAll('.category-nav a');
         const scrollPosition = window.scrollY + 100;
@@ -1187,53 +1270,6 @@ while ($product = $products->fetch_assoc()) {
             }
         });
     });
-
-    document.querySelectorAll('.category-nav a').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            const targetElement = document.querySelector(targetId);
-            
-            if (targetElement) {
-                window.scrollTo({
-                    top: targetElement.offsetTop - 100,
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
-
-    function showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type === 'error' ? 'error' : ''}`;
-        notification.style.position = 'fixed';
-        notification.style.top = '20px';
-        notification.style.right = '20px';
-        notification.style.zIndex = '9999';
-        notification.style.padding = '15px 20px';
-        notification.style.backgroundColor = type === 'success' ? '#4BB543' : '#ff3333';
-        notification.style.color = 'white';
-        notification.style.borderRadius = '4px';
-        notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-        notification.style.display = 'flex';
-        notification.style.alignItems = 'center';
-        notification.style.gap = '10px';
-        notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transition = 'opacity 0.5s';
-            setTimeout(() => {
-                notification.remove();
-            }, 500);
-        }, 3000);
-    }
-
-    document.getElementById('cartOverlay').addEventListener('click', toggleCart);
-
-    // Initialize cart display
-    updateCartDisplay();
     </script>
 </body>
 </html>

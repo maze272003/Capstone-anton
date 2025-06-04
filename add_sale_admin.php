@@ -20,7 +20,7 @@ if (isset($_POST['confirm_sale'])) {
         redirect('add_sale_admin.php', false);
     } else {
         $session->msg('d', 'Sorry, failed to add!');
-        redirect('add_sale.php', false);
+        redirect('add_sale_admin.php', false);
     }
 }
 
@@ -500,7 +500,7 @@ while ($product = $products->fetch_assoc()) {
                 </div>
                 <div class="modal-body">
                     <p id="confirmDetails"></p>
-                    <form method="post" action="add_sale.php">
+                    <form method="post" action="add_sale_admin.php">
                         <input type="hidden" name="s_id" id="confirm_s_id">
                         <input type="hidden" name="quantity" id="confirm_quantity">
                         <input type="hidden" name="price" id="confirm_price">

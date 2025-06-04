@@ -1,6 +1,7 @@
 <?php
 $page_title = 'Sales Report';
 require_once('includes/load.php');
+// Make sure the TCPDF path is correct for your installation
 require_once('tcpdf/tcpdf.php');
 
 page_require_level(3);
@@ -13,12 +14,16 @@ if (isset($_POST['submit'])) {
         $start_date = remove_junk($db->escape($_POST['start-date']));
         $end_date = remove_junk($db->escape($_POST['end-date']));
         
-        $results = find_sale_by_dates($start_date, $end_date);
-
-        // Convert the mysqli_result to an array
+        // Get sales data - modified to handle both array and mysqli_result returns
         $sales_data = [];
-        if ($results) {
-            foreach ($results as $result) {
+        $results = find_sale_by_dates($start_date, $end_date);
+        
+        if (is_array($results)) {
+            // If results is already an array, use it directly
+            $sales_data = $results;
+        } elseif (is_object($results) && get_class($results) === 'mysqli_result') {
+            // If results is a mysqli_result object, fetch data from it
+            while ($result = $db->fetch_assoc($results)) {
                 $sales_data[] = [
                     'date' => $result['date'],
                     'name' => $result['name'],
@@ -44,6 +49,39 @@ if (isset($_POST['submit'])) {
     redirect('sales_report.php', false);
 }
 
+// Get low stock products (quantity < 100) organized by categories
+$low_stock_by_category = [];
+$categories = find_all('categories');
+if ($categories) {
+    foreach ($categories as $category) {
+        // Directly query products with quantity < 100 for this category
+        $sql = "SELECT p.id, p.name, p.quantity, p.categorie_id, c.name AS category_name 
+                FROM products p
+                LEFT JOIN categories c ON p.categorie_id = c.id
+                WHERE p.quantity < 100 AND p.categorie_id = {$category['id']}";
+        
+        $result = $db->query($sql);
+        $low_stock_products = [];
+        
+        if ($db->num_rows($result) > 0) {
+            while ($product = $db->fetch_assoc($result)) {
+                $low_stock_products[] = [
+                    'name' => $product['name'],
+                    'quantity' => (int)$product['quantity']
+                ];
+            }
+        }
+        
+        if (!empty($low_stock_products)) {
+            $low_stock_by_category[] = [
+                'category_name' => $category['name'],
+                'products' => $low_stock_products,
+                'count' => count($low_stock_products)
+            ];
+        }
+    }
+}
+
 if (!empty($sales_data)): 
 ?>
 <!doctype html>
@@ -52,11 +90,14 @@ if (!empty($sales_data)):
    <meta charset="utf-8">
    <title>Sales Report</title>
    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"/>
+   <style>
+       .low-stock { color: #d9534f; font-weight: bold; }
+   </style>
 </head>
 <body>
 <div class="container">
   <div class="clearfix">
-  <a href="sales_report.php" class="btn btn-primary pull-left" style="margin-top: 15px;">Back</a>
+  <a href="sales.php" class="btn btn-primary pull-left" style="margin-top: 15px;">Back</a>
   </div>
   <h1 class="text-center">Sales Report</h1>
     <table class="table table-bordered">
@@ -100,25 +141,63 @@ if (!empty($sales_data)):
       </tbody>
     </table>
 
-    <!-- Single Export to PDF Button -->
-    <div style="margin-bottom: 20px;">
+    <!-- Low Stock Products Section -->
+    <?php if (!empty($low_stock_by_category)): ?>
+    <div class="panel panel-danger">
+        <div class="panel-heading">
+            <h3 class="panel-title">Low Stock Alert (Quantity < 100)</h3>
+        </div>
+        <div class="panel-body">
+            <?php foreach ($low_stock_by_category as $category): ?>
+                <div class="category-section">
+                    <h4><?php echo $category['category_name']; ?> 
+                        <span class="badge"><?php echo $category['count']; ?> products</span>
+                    </h4>
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th width="70%">Product Name</th>
+                                <th width="30%">Current Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($category['products'] as $product): ?>
+                            <tr>
+                                <td><?php echo $product['name']; ?></td>
+                                <td class="low-stock"><?php echo $product['quantity']; ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php else: ?>
+    <div class="alert alert-success">No products with low stock (below 100) found.</div>
+    <?php endif; ?>
+
+    <!-- Export to PDF Button -->
+    <div class="text-center" style="margin: 20px 0;">
       <form action="export_pdf.php" method="post" target="_blank">
         <input type="hidden" name="start_date" value="<?php echo $start_date; ?>">
         <input type="hidden" name="end_date" value="<?php echo $end_date; ?>">
-        <input type="hidden" name="sales_data" value='<?php echo json_encode([
+        <input type="hidden" name="sales_data" value='<?php echo htmlentities(json_encode([
             'data' => $sales_data,
             'grand_total' => $grand_total,
-            'profit' => $profit
-        ]); ?>'>
+            'profit' => $profit,
+            'low_stock' => $low_stock_by_category
+        ])); ?>'>
         <input type="hidden" name="report_type" value="custom">
-        <button type="submit" class="btn btn-primary">Download Report</button>
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="glyphicon glyphicon-download"></i> Download Full Report
+        </button>
       </form>
     </div>
-  </div>
+</div>
 
-  <!-- Add Bootstrap JavaScript and jQuery -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 </body>
 </html>
 
@@ -126,6 +205,3 @@ if (!empty($sales_data)):
 endif;
 if (isset($db)) { $db->db_disconnect(); }
 ?>
-
-
-

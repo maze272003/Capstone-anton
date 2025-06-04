@@ -22,8 +22,13 @@ if(isset($_POST['add_user'])){
         $password = remove_junk($db->escape($_POST['password']));
         $user_level = (int)$db->escape($_POST['level']);
 
-        if (!is_valid_password($password)) {
-            $session->msg('d', 'Password must be at least 8 characters long, contain at least one special character, and one number.');
+        if (is_username_exist($username)) {
+            $session->msg('d', 'Username already exists. Please choose another.');
+            redirect('add_user.php', false);
+        }
+
+        if (is_email_exist($email)) {
+            $session->msg('d', 'Email already exists. Please use a different email address.');
             redirect('add_user.php', false);
         }
 
@@ -60,6 +65,11 @@ if(isset($_POST['add_user'])){
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    
     <!-- Custom CSS -->
     <style>
         :root {
@@ -86,11 +96,13 @@ if(isset($_POST['add_user'])){
         body {
             background-color: #f5f7fb;
             color: #333;
+            overflow-x: hidden;
         }
         
         .admin-container {
             display: flex;
             min-height: 100vh;
+            flex-direction: column;
         }
         
         .sidebar {
@@ -101,6 +113,12 @@ if(isset($_POST['add_user'])){
             position: fixed;
             height: 100vh;
             padding: 20px 0;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar.collapsed {
+            transform: translateX(-250px);
         }
         
         .sidebar-header {
@@ -136,6 +154,11 @@ if(isset($_POST['add_user'])){
             padding-left: 25px;
         }
         
+        .sidebar-menu li a.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
         .sidebar-menu li a i {
             margin-right: 10px;
             width: 20px;
@@ -145,7 +168,12 @@ if(isset($_POST['add_user'])){
         .main-content {
             flex: 1;
             margin-left: 250px;
-            padding: 20px;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .main-content.expanded {
+            margin-left: 0;
         }
         
         .top-bar {
@@ -155,12 +183,14 @@ if(isset($_POST['add_user'])){
             margin-bottom: 30px;
             padding-bottom: 15px;
             border-bottom: 1px solid #e0e0e0;
+            flex-wrap: wrap;
         }
         
         .page-title h1 {
             font-size: 24px;
             font-weight: 600;
             color: var(--dark);
+            margin-bottom: 10px;
         }
         
         .user-profile {
@@ -206,6 +236,7 @@ if(isset($_POST['add_user'])){
             justify-content: space-between;
             align-items: center;
             background: transparent;
+            flex-wrap: wrap;
         }
         
         .card-header h3 {
@@ -213,6 +244,10 @@ if(isset($_POST['add_user'])){
             font-weight: 500;
             margin: 0;
             color: var(--dark);
+        }
+        
+        .card-body {
+            padding: 20px;
         }
         
         .btn {
@@ -232,6 +267,31 @@ if(isset($_POST['add_user'])){
         
         .btn-primary:hover {
             background-color: var(--primary-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-info {
+            background-color: var(--info);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray);
+            color: white;
         }
         
         .form-group {
@@ -303,14 +363,111 @@ if(isset($_POST['add_user'])){
             border: 1px solid #ffa39e;
             color: #f5222d;
         }
+        
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-250px);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .card-header h3 {
+                margin-bottom: 10px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .user-profile {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .user-profile .user-info {
+                text-align: left;
+                margin-right: 0;
+            }
+            
+            .btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .page-title h1 {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="admin-container">
-    <?php include_once('sidebar.php'); ?>
-        
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">
+            <i class="fas fa-bars"></i> Menu
+        </button>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-bullseye"></i> Spring Bullbars</h3>
+            </div>
+            <div class="sidebar-menu">
+                <ul>
+                    <li><a href="admin.php"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="users.php"><i class="fas fa-users"></i> Users</a></li>
+                    <li><a href="product.php"><i class="fas fa-box-open"></i> Products</a></li>
+                    <li><a href="add_product.php"><i class="fa-solid fa-plus"></i> Add New Products</a></li>
+                    <li><a href="sales.php"><i class="fas fa-shopping-cart"></i> Sales</a></li>
+                    <li><a href="transaction_history.php"><i class="fas fa-history"></i> Transaction History</a></li>
+                    <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+
         <!-- Main Content -->
-        <div class="main-content">
+        <div class="main-content" id="mainContent">
             <!-- Top Bar -->
             <div class="top-bar">
                 <div class="page-title">
@@ -320,7 +477,7 @@ if(isset($_POST['add_user'])){
                 <div class="user-profile">
                     <div class="user-info">
                         <div class="name"><?php echo remove_junk(ucfirst($current_user['name'])); ?></div>
-                  
+                        <div class="role"><?php echo isset($current_user['group_name']) ? remove_junk(ucfirst($current_user['group_name'])) : 'Unknown'; ?></div>
                     </div>
                     <img src="uploads/users/<?php echo isset($current_user['image']) ? $current_user['image'] : 'default.jpg'; ?>" alt="User Image">
                 </div>
@@ -385,38 +542,62 @@ if(isset($_POST['add_user'])){
     </div>
     
     <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function() {
-            // Password validation
-            $("#password").on("input", function() {
-                let password = $(this).val();
-                let addUserBtn = $("#add-user-btn");
-                
-                // Check password requirements
-                let lengthValid = password.length >= 8;
-                let specialCharValid = /[!@#$%^&*]/.test(password);
-                let numberValid = /\d/.test(password);
-                
-                // Update requirement indicators
-                $("#length-check").toggleClass("valid", lengthValid);
-                $("#special-char-check").toggleClass("valid", specialCharValid);
-                $("#number-check").toggleClass("valid", numberValid);
-                
-                // Enable/disable submit button
-                if (lengthValid && specialCharValid && numberValid) {
-                    addUserBtn.prop("disabled", false);
-                } else {
-                    addUserBtn.prop("disabled", true);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu toggle functionality
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            mobileMenuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+                mainContent.classList.toggle('expanded');
+            });
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 992) {
+                    if (!sidebar.contains(event.target) && event.target !== mobileMenuToggle) {
+                        sidebar.classList.remove('show');
+                        mainContent.classList.remove('expanded');
+                    }
                 }
             });
             
             // Highlight current page in sidebar
-            $('.sidebar-menu a').each(function() {
-                if (window.location.href.indexOf($(this).attr('href')) > -1) {
-                    $(this).addClass('active');
+            const currentPage = window.location.pathname.split('/').pop();
+            document.querySelectorAll('.sidebar-menu a').forEach(link => {
+                if (link.getAttribute('href') === currentPage) {
+                    link.classList.add('active');
                 }
             });
+            
+            // Password validation
+            const passwordInput = document.getElementById('password');
+            const addUserBtn = document.getElementById('add-user-btn');
+            
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() {
+                    const password = this.value;
+                    
+                    // Check password requirements
+                    const lengthValid = password.length >= 8;
+                    const specialCharValid = /[!@#$%^&*]/.test(password);
+                    const numberValid = /\d/.test(password);
+                    
+                    // Update requirement indicators
+                    document.getElementById('length-check').classList.toggle('valid', lengthValid);
+                    document.getElementById('special-char-check').classList.toggle('valid', specialCharValid);
+                    document.getElementById('number-check').classList.toggle('valid', numberValid);
+                    
+                    // Enable/disable submit button
+                    if (lengthValid && specialCharValid && numberValid) {
+                        addUserBtn.disabled = false;
+                    } else {
+                        addUserBtn.disabled = true;
+                    }
+                });
+            }
         });
     </script>
 </body>

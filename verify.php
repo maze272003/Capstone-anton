@@ -85,7 +85,7 @@ if(isset($_POST['resend_otp'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Account - ShopSphere</title>
+    <title>Verify Account - SpringBullBars</title>
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Google Fonts -->
@@ -228,7 +228,7 @@ if(isset($_POST['resend_otp'])) {
 </head>
 <body>
     <div class="verify-container">
-        <a href="index.php" class="logo">Shop<span>Sphere</span></a>
+        <a href="index.php" class="logo">Spring<span>Bullbars</span></a>
         
         <div class="signup-header">
             <h2>Verify Your Account</h2>

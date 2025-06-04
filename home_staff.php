@@ -1,6 +1,6 @@
-<?php  
-$page_title = 'Admin Home Page';   
-require_once('includes/load.php');   
+<?php
+$page_title = 'Staff Dashboard';
+require_once('includes/load.php');
 
 // Permission check
 page_require_level(2);
@@ -59,11 +59,13 @@ try {
         body {
             background-color: #f5f7fb;
             color: var(--dark);
+            overflow-x: hidden;
         }
         
         .dashboard-container {
             display: flex;
             min-height: 100vh;
+            position: relative;
         }
         
         /* Sidebar Styles */
@@ -74,8 +76,13 @@ try {
             padding: 20px 0;
             height: 100vh;
             position: fixed;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             z-index: 100;
+            transform: translateX(-100%);
+        }
+        
+        .sidebar.active {
+            transform: translateX(0);
         }
         
         .sidebar-header {
@@ -122,8 +129,13 @@ try {
         /* Main Content Styles */
         .main-content {
             flex: 1;
-            margin-left: 240px;
             padding: 20px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .sidebar.active + .main-content {
+            transform: translateX(240px);
         }
         
         .header {
@@ -144,6 +156,7 @@ try {
         .user-profile {
             display: flex;
             align-items: center;
+            position: relative;
         }
         
         .user-profile img {
@@ -152,6 +165,16 @@ try {
             border-radius: 50%;
             margin-right: 10px;
             object-fit: cover;
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--primary);
+            cursor: pointer;
+            margin-left: 15px;
         }
         
         /* Dashboard Cards */
@@ -244,11 +267,13 @@ try {
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow-x: auto;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
         }
         
         th, td {
@@ -284,33 +309,72 @@ try {
             color: var(--danger);
         }
         
+        /* Overlay for mobile menu */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 90;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
         /* Responsive Design */
-        @media (max-width: 768px) {
+        @media (max-width: 992px) {
             .sidebar {
-                width: 70px;
-                overflow: hidden;
+                transform: translateX(-100%);
             }
             
-            .sidebar-header h3, .sidebar-menu span {
-                display: none;
-            }
-            
-            .sidebar-menu a {
-                justify-content: center;
-                padding: 15px 0;
-            }
-            
-            .sidebar-menu i {
-                margin-right: 0;
-                font-size: 18px;
+            .sidebar.active {
+                transform: translateX(0);
             }
             
             .main-content {
-                margin-left: 70px;
+                margin-left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 20px;
             }
             
             .card-container {
                 grid-template-columns: 1fr;
+            }
+            
+            .card h2 {
+                font-size: 20px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .user-profile {
+                width: 100%;
+                justify-content: space-between;
             }
         }
         
@@ -320,10 +384,27 @@ try {
             font-size: 12px;
             margin-top: 5px;
         }
+        
+        /* Animation classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
+        <!-- Overlay for mobile menu -->
+        <div class="overlay"></div>
+        
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -339,7 +420,7 @@ try {
                 <li>
                     <a href="add_sale.php">
                         <i class="fas fa-cart-plus"></i>
-                        <span>Product Bought</span>
+                        <span>Add New Sale</span>
                     </a>
                 </li>
                 <li>
@@ -370,12 +451,15 @@ try {
                 <div class="user-profile">
                     <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['name'] ?? 'Staff'); ?>&background=4361ee&color=fff" alt="User">
                     <span><?php echo $user['name'] ?? 'Staff User'; ?></span>
+                    <button class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
             </div>
 
             <!-- Dashboard Cards -->
             <div class="card-container">
-                <div class="card">
+                <div class="card fade-in delay-1">
                     <div class="card-icon blue">
                         <i class="fas fa-boxes"></i>
                     </div>
@@ -389,7 +473,7 @@ try {
                     </a>
                 </div>
                 
-                <div class="card">
+                <div class="card fade-in delay-2">
                     <div class="card-icon green">
                         <i class="fas fa-receipt"></i>
                     </div>
@@ -403,7 +487,7 @@ try {
                     </a>
                 </div>
                 
-                <div class="card">
+                <div class="card fade-in delay-3">
                     <div class="card-icon purple">
                         <i class="fas fa-tags"></i>
                     </div>
@@ -412,14 +496,11 @@ try {
                     <?php if(!isset($c_categorie['total'])): ?>
                         <div class="error-message">Unable to load category data</div>
                     <?php endif; ?>
-                    <a href="#" style="color: var(--accent); text-decoration: none; font-size: 14px;">
-                        Manage categories <i class="fas fa-arrow-right"></i>
-                    </a>
                 </div>
             </div>
 
             <!-- Sales Chart -->
-            <div class="chart-section">
+            <div class="chart-section fade-in">
                 <div class="section-header">
                     <h2>Top Selling Products</h2>
                 </div>
@@ -436,7 +517,7 @@ try {
             </div>
 
             <!-- Recent Products -->
-            <div class="table-container">
+            <div class="table-container fade-in">
                 <div class="section-header">
                     <h2>Recently Added Products</h2>
                     <a href="product_staff.php" style="color: var(--accent); text-decoration: none; font-size: 14px;">
@@ -444,24 +525,26 @@ try {
                     </a>
                 </div>
                 <?php if(!empty($recent_products)): ?>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($recent_products as $recent_product): ?>
-                            <tr>
-                                <td><?php echo remove_junk(first_character($recent_product['name'])); ?></td>
-                                <td><?php echo remove_junk(first_character($recent_product['categorie'])); ?></td>
-                                <td>₱<?php echo (int)$recent_product['sale_price']; ?></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($recent_products as $recent_product): ?>
+                                <tr>
+                                    <td><?php echo remove_junk(first_character($recent_product['name'])); ?></td>
+                                    <td><?php echo remove_junk(first_character($recent_product['categorie'])); ?></td>
+                                    <td>₱<?php echo (int)$recent_product['sale_price']; ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 <?php else: ?>
                     <div style="padding: 20px; text-align: center; color: var(--gray);">
                         <i class="fas fa-box-open" style="font-size: 50px; opacity: 0.5; margin-bottom: 15px;"></i>
@@ -475,6 +558,21 @@ try {
     <!-- Chart.js Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Mobile menu toggle
+        const menuToggle = document.querySelector('.menu-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+        
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+        
         <?php if(!empty($products_sold)): ?>
             const productLabels = [<?php foreach ($products_sold as $product) { echo "'" . $product['name'] . "',"; } ?>];
             const productQtyData = [<?php foreach ($products_sold as $product) { echo $product['totalSold'] . ","; } ?>];

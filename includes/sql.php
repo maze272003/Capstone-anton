@@ -81,21 +81,30 @@ function tableExists($table){
  /* Login with the data provided in $_POST,
  /* coming from the login form.
 /*--------------------------------------------------------------*/
-  function authenticate($username='', $password='') {
+  function authenticate($username_or_email = '', $password = '') {
     global $db;
-    $username = $db->escape($username);
+    $username_or_email = $db->escape($username_or_email);
     $password = $db->escape($password);
-    $sql  = sprintf("SELECT id,username,password,user_level FROM users WHERE username ='%s' LIMIT 1", $username);
-    $result = $db->query($sql);
-    if($db->num_rows($result)){
-      $user = $db->fetch_assoc($result);
-      $password_request = sha1($password);
-      if($password_request === $user['password'] ){
-        return $user['id'];
-      }
+
+    // Determine if input is email or username
+    if (filter_var($username_or_email, FILTER_VALIDATE_EMAIL)) {
+        $sql = sprintf("SELECT id, username, password, user_level FROM users WHERE email ='%s' LIMIT 1", $username_or_email);
+    } else {
+        $sql = sprintf("SELECT id, username, password, user_level FROM users WHERE username ='%s' LIMIT 1", $username_or_email);
     }
-   return false;
-  }
+
+    $result = $db->query($sql);
+    if ($db->num_rows($result)) {
+        $user = $db->fetch_assoc($result);
+        $password_request = sha1($password); // keep your current encryption method
+        if ($password_request === $user['password']) {
+            return $user['id'];
+        }
+    }
+
+    return false;
+}
+
   /*--------------------------------------------------------------*/
   /* Login with the data provided in $_POST,
   /* coming from the login_v2.php form.
@@ -189,19 +198,19 @@ function tableExists($table){
    function page_require_level($require_level){
      global $session;
      $current_user = current_user();
-     
+     $login_level = find_by_groupLevel($current_user['user_level']);
      //if user not login
      if (!$session->isUserLoggedIn(true)):
             $session->msg('d','Please login...');
             redirect('index.php', false);
       //if Group status Deactive
-    //  elseif($login_level['group_status'] === '0'):
-    //        $session->msg('d','This level user has been band!');
-    //        redirect('home.php',false);
+     elseif($login_level['group_status'] === '0'):
+           $session->msg('d','This level user has been band!');
+           redirect('home.php',false);
       //cheackin log in User level and Require level is Less than or equal to
-      //  elseif($current_user['user_level'] <= (int)$require_level):
-      //           return true;
-      //   else:
+     elseif($current_user['user_level'] <= (int)$require_level):
+              return true;
+      else:
             $session->msg("d", "Sorry! you dont have permission to view the page.");
             redirect('home.php', false);
         endif;
@@ -404,5 +413,19 @@ function get_items_sold_by_date_range($start_date, $end_date) {
             ORDER BY DATE(date) ASC";
     return find_by_sql($sql);
 }
+function is_username_exist($username) {
+    global $db;
+    $username = $db->escape($username);
+    $result = $db->query("SELECT id FROM users WHERE username = '{$username}' LIMIT 1");
+    return ($db->num_rows($result) > 0);
+}
+
+function is_email_exist($email) {
+    global $db;
+    $email = $db->escape($email);
+    $result = $db->query("SELECT id FROM users WHERE email = '{$email}' LIMIT 1");
+    return ($db->num_rows($result) > 0);
+}
+
 
 ?>

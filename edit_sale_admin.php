@@ -1,5 +1,5 @@
 <?php
-$page_title = 'Edit User';
+$page_title = 'Edit Sale';
 require_once('includes/load.php');
 
 // Check if user is logged in properly
@@ -18,91 +18,51 @@ if (empty($user) || !isset($user['user_level'])) {
 
 page_require_level(1);
 
-$e_user = find_by_id('users', (int)$_GET['id']);
-$groups = find_all('user_groups');
-if (!$e_user) {
-    $session->msg("d", "Missing user ID.");
-    redirect('users.php');
+// Get sale data
+$sale = find_by_id('sales', (int)$_GET['id']);
+if(!$sale) {
+    $session->msg("d", "Missing sale id.");
+    redirect('sales.php', false);
 }
-?>
 
-<?php
-// Update User basic info
-if (isset($_POST['update'])) {
-    $req_fields = array('name', 'username', 'email', 'level');
+$product = find_by_id('products', $sale['product_id']);
+
+if(isset($_POST['update_sale'])) {
+    $req_fields = array('title', 'quantity', 'price', 'total', 'date');
     validate_fields($req_fields);
-    if (empty($errors)) {
-        $id = (int)$e_user['id'];
-        $name = remove_junk($db->escape($_POST['name']));
-        $username = remove_junk($db->escape($_POST['username']));
-        $email = remove_junk($db->escape($_POST['email']));
-        $level = (int)$db->escape($_POST['level']);
-        $status = remove_junk($db->escape($_POST['status']));
+    
+    if(empty($errors)) {
+        $p_id      = $db->escape((int)$product['id']);
+        $s_qty     = $db->escape((int)$_POST['quantity']);
+        $s_total   = $db->escape($_POST['total']);
+        $date      = $db->escape($_POST['date']);
+        $s_date    = date("Y-m-d", strtotime($date));
+
+        $sql  = "UPDATE sales SET";
+        $sql .= " product_id= '{$p_id}', qty={$s_qty}, price='{$s_total}', date='{$s_date}'";
+        $sql .= " WHERE id ='{$sale['id']}'";
         
-        // Validate email format
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $session->msg('d', 'Invalid email format');
-            redirect('edit_user.php?id='.(int)$e_user['id'], false);
-        }
-        
-        // Check if email exists (other than current user)
-        $sql = "SELECT * FROM users WHERE email='{$email}' AND id!='{$id}'";
         $result = $db->query($sql);
-        if($db->num_rows($result) > 0) {
-            $session->msg('d', 'Email already exists');
-            redirect('edit_user.php?id='.(int)$e_user['id'], false);
-        }
-        
-        $sql = "UPDATE users SET name='{$name}', username='{$username}', email='{$email}', user_level='{$level}', status='{$status}' WHERE id='{$id}'";
-        $result = $db->query($sql);
-        
-        if ($result && $db->affected_rows() === 1) {
-            $session->msg('s', "Account Updated");
-            redirect('edit_user.php?id='.(int)$e_user['id'], false);
+        if($result && $db->affected_rows() === 1) {
+            update_product_qty($s_qty, $p_id);
+            $session->msg('s', "Sale updated.");
+            redirect('edit_sale.php?id='.$sale['id'], false);
         } else {
             $session->msg('d', 'Sorry, failed to update!');
-            redirect('edit_user.php?id='.(int)$e_user['id'], false);
+            redirect('sales.php', false);
         }
     } else {
         $session->msg("d", $errors);
-        redirect('edit_user.php?id='.(int)$e_user['id'], false);
+        redirect('edit_sale.php?id='.(int)$sale['id'], false);
     }
 }
 ?>
-
-<?php
-// Update user password
-if (isset($_POST['update-pass'])) {
-    $req_fields = array('password');
-    validate_fields($req_fields);
-    if (empty($errors)) {
-        $id = (int)$e_user['id'];
-        $password = remove_junk($db->escape($_POST['password']));
-        $h_pass = sha1($password);
-
-        $sql = "UPDATE users SET password='{$h_pass}' WHERE id='{$id}'";
-        $result = $db->query($sql);
-
-        if ($result && $db->affected_rows() === 1) {
-            $session->msg('s', "User password has been updated");
-            redirect('edit_user.php?id='.(int)$e_user['id'], false);
-        } else {
-            $session->msg('d', 'Sorry, failed to update user password!');
-            redirect('edit_user.php?id='.(int)$e_user['id'], false);
-        }
-    } else {
-        $session->msg("d", $errors);
-        redirect('edit_user.php?id='.(int)$e_user['id'], false);
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Edit User</title>
+    <title>Admin Panel - Edit Sale</title>
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -114,6 +74,9 @@ if (isset($_POST['update-pass'])) {
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    
+    <!-- Datepicker CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
     
     <!-- Custom CSS -->
     <style>
@@ -293,6 +256,7 @@ if (isset($_POST['update-pass'])) {
         
         .card-body {
             padding: 20px;
+            overflow-x: auto;
         }
         
         .btn {
@@ -319,6 +283,10 @@ if (isset($_POST['update-pass'])) {
             color: white;
         }
         
+        .btn-success:hover {
+            background-color: #3ab7d8;
+        }
+        
         .btn-warning {
             background-color: var(--warning);
             color: white;
@@ -340,7 +308,14 @@ if (isset($_POST['update-pass'])) {
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
         }
         
         .form-control {
@@ -358,11 +333,29 @@ if (isset($_POST['update-pass'])) {
             outline: none;
         }
         
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--dark);
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-group .form-control {
+            flex: 1;
+        }
+        
+        .input-group-addon {
+            padding: 0 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-left: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 38px;
+            color: var(--gray);
+        }
+        
+        .datepicker {
+            z-index: 1000 !important;
         }
         
         .row {
@@ -375,6 +368,18 @@ if (isset($_POST['update-pass'])) {
         .col {
             flex: 1;
             min-width: 250px;
+        }
+        
+        .edit-form {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
         }
         
         .alert {
@@ -394,32 +399,6 @@ if (isset($_POST['update-pass'])) {
             background-color: #fff1f0;
             border: 1px solid #ffa39e;
             color: #f5222d;
-        }
-        
-        #password-requirements {
-            margin: 10px 0 20px;
-            padding-left: 20px;
-            font-size: 13px;
-        }
-        
-        #password-requirements li {
-            margin-bottom: 5px;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-        
-        .status-active {
-            background-color: #52c41a;
-        }
-        
-        .status-inactive {
-            background-color: #f5222d;
         }
         
         /* Mobile menu toggle */
@@ -463,6 +442,16 @@ if (isset($_POST['update-pass'])) {
             .card-header h3 {
                 margin-bottom: 10px;
             }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .input-group-addon {
+                width: 100%;
+                border-left: 1px solid #ddd;
+                border-top: none;
+            }
         }
         
         @media (max-width: 768px) {
@@ -481,6 +470,15 @@ if (isset($_POST['update-pass'])) {
                 text-align: left;
                 margin-right: 0;
             }
+            
+            .form-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
         }
         
         @media (max-width: 576px) {
@@ -492,9 +490,8 @@ if (isset($_POST['update-pass'])) {
                 font-size: 20px;
             }
             
-            .btn {
-                padding: 6px 10px;
-                font-size: 12px;
+            .form-control {
+                padding: 8px 12px;
             }
         }
     </style>
@@ -517,7 +514,7 @@ if (isset($_POST['update-pass'])) {
                     <li><a href="users.php"><i class="fas fa-users"></i> Users</a></li>
                     <li><a href="product.php"><i class="fas fa-box-open"></i> Products</a></li>
                     <li><a href="add_product.php"><i class="fa-solid fa-plus"></i> Add New Products</a></li>
-                    <li><a href="sales.php"><i class="fas fa-shopping-cart"></i> Sales</a></li>
+                    <li><a href="sales.php" class="active"><i class="fas fa-shopping-cart"></i> Sales</a></li>
                     <li><a href="transaction_history.php"><i class="fas fa-history"></i> Transaction History</a></li>
                     <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
@@ -529,7 +526,7 @@ if (isset($_POST['update-pass'])) {
             <!-- Top Bar -->
             <div class="top-bar">
                 <div class="page-title">
-                    <h1><i class="fas fa-user-edit"></i> Edit User</h1>
+                    <h1><i class="fas fa-edit"></i> Edit Sale</h1>
                 </div>
                 <div class="user-profile">
                     <div class="user-info">
@@ -542,88 +539,67 @@ if (isset($_POST['update-pass'])) {
             
             <?php echo display_msg($msg); ?>
             
-            <div class="row">
-                <!-- Update User Info -->
-                <div class="col">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Update <?php echo remove_junk(ucwords($e_user['name'])); ?> Account</h3>
-                        </div>
-                        <div class="card-body">
-                            <form method="post" action="edit_user.php?id=<?php echo (int)$e_user['id']; ?>" class="clearfix">
-                                <div class="form-group">
-                                    <label for="name" class="control-label">Name</label>
-                                    <input type="text" class="form-control" name="name" value="<?php echo remove_junk(ucwords($e_user['name'])); ?>">
-                                </div>
-                                <div class="form-group">
-                                    <label for="username" class="control-label">Username</label>
-                                    <input type="text" class="form-control" name="username" value="<?php echo remove_junk(ucwords($e_user['username'])); ?>">
-                                </div>
-                                <div class="form-group">
-                                    <label for="email" class="control-label">Email Address</label>
-                                    <input type="email" class="form-control" name="email" value="<?php echo isset($e_user['email']) ? remove_junk($e_user['email']) : ''; ?>">
-                                </div>
-                                <div class="form-group">
-                                    <label for="level">User Role</label>
-                                    <select class="form-control" name="level">
-                                        <?php foreach ($groups as $group) : ?>
-                                            <option <?php if ($group['group_level'] === $e_user['user_level']) echo 'selected="selected"'; ?> value="<?php echo $group['group_level']; ?>">
-                                                <?php echo ucwords($group['group_name']); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="status">Status</label>
-                                    <select class="form-control" name="status">
-                                        <option <?php if ($e_user['status'] === '1') echo 'selected="selected"'; ?> value="1">
-                                            <span class="status-indicator status-active"></span> Active
-                                        </option>
-                                        <option <?php if ($e_user['status'] === '0') echo 'selected="selected"'; ?> value="0">
-                                            <span class="status-indicator status-inactive"></span> Inactive
-                                        </option>
-                                    </select>
-                                </div>
-                                <div class="form-group clearfix">
-                                    <button type="submit" name="update" class="btn btn-info">Update</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Edit Sale Record</h3>
+                    <a href="sales.php" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Sales
+                    </a>
                 </div>
-
-                <!-- Change Password Form -->
-                <div class="col">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Change <?php echo remove_junk(ucwords($e_user['name'])); ?> Password</h3>
-                        </div>
-                        <div class="card-body">
-                            <form action="edit_user.php?id=<?php echo (int)$e_user['id']; ?>" method="post" class="clearfix">
+                <div class="card-body">
+                    <form method="post" action="edit_sale.php?id=<?php echo (int)$sale['id']; ?>" class="edit-form">
+                        <div class="row">
+                            <div class="col">
                                 <div class="form-group">
-                                    <label for="password" class="control-label">Password</label>
-                                    <input type="password" id="password" class="form-control" name="password" placeholder="Enter new password">
+                                    <label class="form-label">Product Name</label>
+                                    <input type="text" class="form-control" name="title" value="<?php echo remove_junk($product['name']); ?>" readonly>
                                 </div>
-
-                                <!-- Password Requirements -->
-                                <ul id="password-requirements">
-                                    <li id="length-check">❌ At least 8 characters</li>
-                                    <li id="special-char-check">❌ At least one special character (!@#$%^&*)</li>
-                                    <li id="number-check">❌ At least one number (0-9)</li>
-                                </ul>
-
-                                <div class="form-group clearfix">
-                                    <button type="submit" name="update-pass" id="update-pass-btn" class="btn btn-danger" disabled>Change Password</button>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">Date</label>
+                                    <input type="text" class="form-control datepicker" name="date" value="<?php echo remove_junk($sale['date']); ?>">
                                 </div>
-                            </form>
+                            </div>
                         </div>
-                    </div>
+                        
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">Quantity</label>
+                                    <input type="number" class="form-control" name="quantity" value="<?php echo (int)$sale['qty']; ?>">
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">Unit Price</label>
+                                    <input type="text" class="form-control" name="price" value="<?php echo remove_junk($product['sale_price']); ?>" readonly>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">Total</label>
+                                    <input type="text" class="form-control" name="total" value="<?php echo remove_junk($sale['price']); ?>">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <a href="delete_sale.php?id=<?php echo (int)$sale['id']; ?>" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                            <button type="submit" name="update_sale" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Sale
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Mobile menu toggle functionality
@@ -646,32 +622,19 @@ if (isset($_POST['update-pass'])) {
                 }
             });
             
-            // Highlight current page in sidebar
-            const currentPage = window.location.pathname.split('/').pop();
-            document.querySelectorAll('.sidebar-menu a').forEach(link => {
-                if (link.getAttribute('href') === currentPage) {
-                    link.classList.add('active');
-                }
+            // Initialize datepicker
+            $('.datepicker').datepicker({
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                todayHighlight: true
             });
             
-            // Password validation
-            const passwordInput = document.getElementById("password");
-            const updateButton = document.getElementById("update-pass-btn");
-            const lengthCheck = document.getElementById("length-check");
-            const specialCharCheck = document.getElementById("special-char-check");
-            const numberCheck = document.getElementById("number-check");
-
-            passwordInput.addEventListener("input", function() {
-                const password = passwordInput.value;
-                let validLength = password.length >= 8;
-                let hasSpecialChar = /[!@#$%^&*]/.test(password);
-                let hasNumber = /\d/.test(password);
-
-                lengthCheck.innerHTML = validLength ? "✅ At least 8 characters" : "❌ At least 8 characters";
-                specialCharCheck.innerHTML = hasSpecialChar ? "✅ At least one special character (!@#$%^&*)" : "❌ At least one special character (!@#$%^&*)";
-                numberCheck.innerHTML = hasNumber ? "✅ At least one number (0-9)" : "❌ At least one number (0-9)";
-
-                updateButton.disabled = !(validLength && hasSpecialChar && hasNumber);
+            // Calculate total when quantity changes
+            $('input[name="quantity"]').on('change', function() {
+                const quantity = parseFloat($(this).val()) || 0;
+                const price = parseFloat($('input[name="price"]').val()) || 0;
+                const total = quantity * price;
+                $('input[name="total"]').val(total.toFixed(2));
             });
         });
     </script>

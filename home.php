@@ -31,7 +31,7 @@ try {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?php echo $page_title; ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -54,16 +54,20 @@ try {
             padding: 0;
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
             background-color: #f5f7fb;
             color: var(--dark);
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
         }
         
         .dashboard-container {
             display: flex;
             min-height: 100vh;
+            position: relative;
         }
         
         /* Sidebar Styles */
@@ -74,8 +78,10 @@ try {
             padding: 20px 0;
             height: 100vh;
             position: fixed;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             z-index: 100;
+            left: 0;
+            top: 0;
         }
         
         .sidebar-header {
@@ -122,8 +128,10 @@ try {
         /* Main Content Styles */
         .main-content {
             flex: 1;
-            margin-left: 240px;
             padding: 20px;
+            margin-left: 240px;
+            transition: all 0.3s ease;
+            width: calc(100% - 240px);
         }
         
         .header {
@@ -144,6 +152,7 @@ try {
         .user-profile {
             display: flex;
             align-items: center;
+            position: relative;
         }
         
         .user-profile img {
@@ -152,6 +161,16 @@ try {
             border-radius: 50%;
             margin-right: 10px;
             object-fit: cover;
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--primary);
+            cursor: pointer;
+            margin-left: 15px;
         }
         
         /* Dashboard Cards */
@@ -222,7 +241,7 @@ try {
         
         .chart-container {
             position: relative;
-            height: 250px; /* Reduced height */
+            height: 250px;
             width: 100%;
         }
         
@@ -242,19 +261,23 @@ try {
         .table-container {
             background: white;
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            overflow-x: auto;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
         }
         
         th, td {
-            padding: 12px 15px;
+            padding: 10px 12px;
             text-align: left;
             border-bottom: 1px solid var(--light-gray);
+            font-size: 14px;
         }
         
         th {
@@ -267,11 +290,13 @@ try {
             background-color: rgba(67, 97, 238, 0.05);
         }
         
+        /* Status Badges */
         .badge {
-            padding: 5px 10px;
+            padding: 4px 8px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
+            display: inline-block;
         }
         
         .badge-primary {
@@ -284,34 +309,9 @@ try {
             color: var(--danger);
         }
         
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-                overflow: hidden;
-            }
-            
-            .sidebar-header h3, .sidebar-menu span {
-                display: none;
-            }
-            
-            .sidebar-menu a {
-                justify-content: center;
-                padding: 15px 0;
-            }
-            
-            .sidebar-menu i {
-                margin-right: 0;
-                font-size: 18px;
-            }
-            
-            .main-content {
-                margin-left: 70px;
-            }
-            
-            .card-container {
-                grid-template-columns: 1fr;
-            }
+        .badge-success {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
         }
         
         /* Error message styling */
@@ -319,6 +319,101 @@ try {
             color: var(--danger);
             font-size: 12px;
             margin-top: 5px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .user-profile {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .card-container {
+                grid-template-columns: 1fr;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .card-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+            
+            .card h2 {
+                font-size: 20px;
+            }
+            
+            .table-container {
+                padding: 10px;
+            }
+            
+            .badge {
+                padding: 3px 6px;
+                font-size: 11px;
+            }
+        }
+        
+        /* Webview specific optimizations */
+        @media (hover: none) {
+            .card:hover {
+                transform: none;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            }
+            
+            .sidebar-menu a:hover {
+                background-color: transparent;
+                color: var(--gray);
+                border-left: 3px solid transparent;
+            }
+            
+            .sidebar-menu a.active {
+                background-color: rgba(67, 97, 238, 0.1);
+                color: var(--primary);
+                border-left: 3px solid var(--primary);
+            }
         }
     </style>
 </head>
@@ -370,6 +465,9 @@ try {
                 <div class="user-profile">
                     <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['name'] ?? 'Staff'); ?>&background=4361ee&color=fff" alt="User">
                     <span><?php echo $user['name'] ?? 'Staff User'; ?></span>
+                    <button class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
             </div>
 
@@ -450,7 +548,6 @@ try {
                                 <th>Product</th>
                                 <th>Category</th>
                                 <th>Price</th>
-                                <!-- <th>Status</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -459,11 +556,6 @@ try {
                                 <td><?php echo remove_junk(first_character($recent_product['name'])); ?></td>
                                 <td><?php echo remove_junk(first_character($recent_product['categorie'])); ?></td>
                                 <td>₱<?php echo (int)$recent_product['sale_price']; ?></td>
-                                <!-- <td>
-                                    <span class="badge <?php echo ($recent_product['quantity'] > 0) ? 'badge-primary' : 'badge-danger'; ?>">
-                                        <?php echo ($recent_product['quantity'] > 0) ? 'In Stock' : 'Out of Stock'; ?>
-                                    </span>
-                                </td> -->
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -480,7 +572,16 @@ try {
 
     <!-- Chart.js Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // Mobile menu toggle
+        const menuToggle = document.querySelector('.menu-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+
         <?php if(!empty($products_sold)): ?>
             const productLabels = [<?php foreach ($products_sold as $product) { echo "'" . $product['name'] . "',"; } ?>];
             const productQtyData = [<?php foreach ($products_sold as $product) { echo $product['totalSold'] . ","; } ?>];

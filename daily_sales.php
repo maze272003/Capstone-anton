@@ -40,11 +40,13 @@ $sales = dailySales($year, $month);
         body {
             background-color: #f5f7fb;
             color: var(--dark);
+            overflow-x: hidden;
         }
         
         .dashboard-container {
             display: flex;
             min-height: 100vh;
+            position: relative;
         }
         
         /* Sidebar Styles */
@@ -57,6 +59,8 @@ $sales = dailySales($year, $month);
             position: fixed;
             transition: all 0.3s;
             z-index: 100;
+            left: 0;
+            top: 0;
         }
         
         .sidebar-header {
@@ -105,7 +109,8 @@ $sales = dailySales($year, $month);
             flex: 1;
             margin-left: 240px;
             padding: 30px;
-            transition: margin-left 0.3s;
+            transition: all 0.3s;
+            width: calc(100% - 240px);
         }
         
         .header {
@@ -126,6 +131,7 @@ $sales = dailySales($year, $month);
         .user-profile {
             display: flex;
             align-items: center;
+            position: relative;
         }
         
         .user-profile img {
@@ -134,6 +140,16 @@ $sales = dailySales($year, $month);
             border-radius: 50%;
             margin-right: 10px;
             object-fit: cover;
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--primary);
+            cursor: pointer;
+            margin-left: 15px;
         }
         
         /* Sales Chart Section */
@@ -251,30 +267,59 @@ $sales = dailySales($year, $month);
             color: var(--primary);
         }
         
+        /* Overlay for mobile menu */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .overlay.active {
+            opacity: 0;
+            
+        }
+        
         /* Responsive Design */
-        @media (max-width: 768px) {
+        @media (max-width: 992px) {
             .sidebar {
-                width: 70px;
-                overflow: hidden;
+                transform: translateX(-100%);
             }
             
-            .sidebar-header h3, .sidebar-menu span {
-                display: none;
-            }
-            
-            .sidebar-menu a {
-                justify-content: center;
-                padding: 15px 0;
-            }
-            
-            .sidebar-menu i {
-                margin-right: 0;
-                font-size: 18px;
+            .sidebar.active {
+                transform: translateX(0);
             }
             
             .main-content {
-                margin-left: 70px;
-                padding: 15px;
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .user-profile {
+                width: 100%;
+                justify-content: space-between;
             }
             
             .chart-container {
@@ -286,15 +331,27 @@ $sales = dailySales($year, $month);
                 margin: 15px 0;
             }
             
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
+            .main-content {
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .total-sales h2 {
+                font-size: 24px;
+            }
+            
+            .section-header h2 {
+                font-size: 16px;
             }
         }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
+        <!-- Overlay for mobile menu -->
+        <div class="overlay"></div>
+        
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -341,6 +398,9 @@ $sales = dailySales($year, $month);
                 <div class="user-profile">
                     <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['name'] ?? 'Staff'); ?>&background=4361ee&color=fff" alt="User">
                     <span><?php echo $user['name'] ?? 'Staff User'; ?></span>
+                    <button class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
             </div>
 
@@ -366,15 +426,27 @@ $sales = dailySales($year, $month);
 
     <!-- Chart.js Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- jQuery and Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const ctx = document.getElementById('dailySalesChart').getContext('2d');
-            const chartContainer = document.querySelector('.chart-container');
+        $(document).ready(function() {
+            // Mobile menu toggle
+            const menuToggle = document.querySelector('.menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.overlay');
             
-            // Create chart
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+            
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+
+            // Initialize chart
+            const ctx = document.getElementById('dailySalesChart').getContext('2d');
             const chart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -406,7 +478,7 @@ $sales = dailySales($year, $month);
                             }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            backgroundColor: 'rgba(0,0,0,0.😎',
                             titleFont: {
                                 size: 14,
                                 family: 'Poppins'
@@ -451,26 +523,6 @@ $sales = dailySales($year, $month);
                         }
                     }
                 }
-            });
-
-            // Smooth category navigation
-            document.querySelectorAll('.category-nav a').forEach(anchor => {
-                anchor.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Update active state
-                    document.querySelectorAll('.category-nav a').forEach(a => {
-                        a.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                });
-            });
-
-            // Search functionality
-            document.getElementById('salesSearch').addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                // Implement your search logic here
-                console.log('Searching for:', searchTerm);
             });
 
             // Handle window resize

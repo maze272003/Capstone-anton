@@ -1,4 +1,6 @@
 <?php
+
+
 ob_start();
 require_once('includes/load.php');
 if($session->isUserLoggedIn(true)) { redirect('home.php', false);}
@@ -126,7 +128,7 @@ if(isset($_POST['signup'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - SpringBullbars</title>
+    <title>Signss Up - SpringBullbars</title>
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Google Fonts -->
