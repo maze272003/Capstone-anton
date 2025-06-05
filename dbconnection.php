@@ -4,7 +4,7 @@
 $db_host = 'localhost';
 $db_user = 'root';
 $db_pass = '';
-$db_name = 'imssb1';
+$db_name = 'imssb';
 
 // Declare $db as global
 global $db;

@@ -80,7 +80,7 @@ if ($pie_result && $pie_result->num_rows > 0) {
 
 
 // Get top selling products with accurate total sales calculation
-// $products_sold = find_highest_selling_products('10', $product_filter);
+$products_sold = find_highest_selling_products('10');
 $recent_products = find_recent_product_added('5');
 $inventory_value = 0;
 $products = find_all('products');
@@ -1154,17 +1154,41 @@ $sales_products = get_sales_products($filter, $start_date, $end_date);
                         </div>
                     </form>
                 </div>
-<!-- Product Sales Distribution Pie Chart -->
-<div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-chart-pie"></i> Product Sales Distribution</h3>
-    </div>
-    <div class="card-body">
-        <div class="chart-container">
-            <canvas id="productSalesPieChart"></canvas>
-        </div>
-    </div>
-</div>
+                <!-- Charts Row -->
+                <div class="grid-container">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Sales Performance</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="salesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-bar"></i> Items Sold</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="itemsSoldChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Product Sales Distribution Pie Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-pie"></i> Product Sales Distribution</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="productSalesPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
                 <!-- Sales Products Card -->
                 <div class="card">
                     <div class="card-header">
@@ -1218,30 +1242,7 @@ $sales_products = get_sales_products($filter, $start_date, $end_date);
                     </div>
                 </div>
                 
-                <!-- Charts Row -->
-                <div class="grid-container">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-chart-line"></i> Sales Performance</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="chart-container">
-                                <canvas id="salesChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-chart-bar"></i> Items Sold</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="chart-container">
-                                <canvas id="itemsSoldChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
                 
                 <!-- Category Sales -->
                 <div class="card">
@@ -2269,6 +2270,7 @@ $sales_products = get_sales_products($filter, $start_date, $end_date);
         }
     }
     // Pie Chart configuration
+// Pie Chart configuration
 const pieConfig = {
     type: 'pie',
     data: {
@@ -2294,7 +2296,7 @@ const pieConfig = {
                         const value = context.raw || 0;
                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
                         const percentage = Math.round((value / total) * 100);
-                        return `${label}:  `;
+                        return `${label}: ${value}`;
                     }
                 }
             }
