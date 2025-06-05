@@ -1,8 +1,12 @@
 <?php
+require_once 'loadEnv.php';
+loadEnv(__DIR__ . '/.env');
 // SMTP Configuration
-$smtp_host = 'smtp.gmail.com';
-$smtp_username = 'rueda.antonl@gmail.com';
-$smtp_password = 'qwjd dfzt hmra abct';
-$from_email = 'rueda.antonl@gmail.com';
-$from_name = 'SpringBullbars';
+$smtp_host = getenv('SMTP_HOST');
+$smtp_username = getenv('SMTP_USERNAME');
+$smtp_password = getenv('SMTP_PASSWORD');
+$from_email = getenv('FROM_EMAIL');
+$from_name = getenv('FROM_NAME');
+
+
 ?>

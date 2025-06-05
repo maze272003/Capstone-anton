@@ -2,8 +2,8 @@
 ob_start();
 require_once('includes/load.php');
 
-// Define the find_by_email function if it doesn't exist
-if(!function_exists('find_by_email')) {
+// Define find_by_email if not already declared
+if (!function_exists('find_by_email')) {
     function find_by_email($email) {
         global $db;
         $email = $db->escape($email);
@@ -13,50 +13,77 @@ if(!function_exists('find_by_email')) {
     }
 }
 
-// Define generate_otp function if it doesn't exist
-if(!function_exists('generate_otp')) {
+// Define generate_otp if not already declared
+if (!function_exists('generate_otp')) {
     function generate_otp($length = 6) {
-        return str_pad(rand(0, pow(10, $length)-1), $length, '0', STR_PAD_LEFT);
+        return str_pad(rand(0, pow(10, $length) - 1), $length, '0', STR_PAD_LEFT);
     }
 }
 
-// Define send_otp_email function if it doesn't exist
-if(!function_exists('send_otp_email')) {
+// PHPMailer dependencies
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require 'vendor/autoload.php';
+
+// Define send_otp_email using PHPMailer
+if (!function_exists('send_otp_email')) {
     function send_otp_email($email, $otp) {
-        $subject = "Your OTP Verification Code";
-        $message = "Your verification code is: $otp\n\nThis code will expire in 10 minutes.";
-        $headers = "From: no-reply@yourdomain.com";
-        
-        return mail($email, $subject, $message, $headers);
+        $mail = new PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->Host = getenv('SMTP_HOST');
+            $mail->SMTPAuth = true;
+            $mail->Username = getenv('SMTP_USERNAME');
+            $mail->Password = getenv('SMTP_PASSWORD');
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = 587;
+
+            $mail->setFrom('rueda.antonl@gmail.com', 'SpringBullbars');
+            $mail->addAddress($email);
+            $mail->isHTML(true);
+            $mail->Subject = 'Your OTP Verification Code';
+            $mail->Body = "
+                <h2>SpringBullbars Account Verification</h2>
+                <p>Your OTP code is: <strong>{$otp}</strong></p>
+                <p>This code will expire in 10 minutes.</p>
+            ";
+
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("Mailer Error: " . $mail->ErrorInfo);
+            return false;
+        }
     }
 }
 
-if(!isset($_SESSION['verify_email'])) {
+// Redirect if no email in session
+if (!isset($_SESSION['verify_email'])) {
     redirect('signup.php', false);
 }
 
 $email = $_SESSION['verify_email'];
 $user = find_by_email($email);
 
-if(!$user) {
+if (!$user) {
     $session->msg('d', "User not found.");
     redirect('signup.php', false);
 }
 
-if($user['status'] == 1) {
+if ($user['status'] == 1) {
     $session->msg('s', "Account already verified. You can now login.");
+    unset($_SESSION['verify_email']);
     redirect('index.php', false);
 }
 
-// Process OTP verification
-if(isset($_POST['verify_otp'])) {
+// OTP verification
+if (isset($_POST['verify_otp'])) {
     $otp = remove_junk($db->escape($_POST['otp']));
     $current_time = date('Y-m-d H:i:s');
-    
-    if($user['otp_code'] == $otp && $current_time <= $user['otp_expiry']) {
-        // Update user status to active
+
+    if ($user['otp_code'] === $otp && $current_time <= $user['otp_expiry']) {
         $db->query("UPDATE users SET status = 1, otp_code = NULL, otp_expiry = NULL WHERE email = '{$email}'");
-        
         $session->msg('s', "Account verified successfully! You can now login.");
         unset($_SESSION['verify_email']);
         redirect('index.php', false);
@@ -66,20 +93,20 @@ if(isset($_POST['verify_otp'])) {
 }
 
 // Resend OTP
-if(isset($_POST['resend_otp'])) {
+if (isset($_POST['resend_otp'])) {
     $new_otp = generate_otp();
     $otp_expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
-    
-    if(send_otp_email($email, $new_otp)) {
+
+    if (send_otp_email($email, $new_otp)) {
         $db->query("UPDATE users SET otp_code = '{$new_otp}', otp_expiry = '{$otp_expiry}' WHERE email = '{$email}'");
         $session->msg('s', "New OTP sent to your email.");
-        // Refresh user data
-        $user = find_by_email($email);
+        $user = find_by_email($email); // Refresh data
     } else {
         $session->msg('d', "Failed to resend OTP. Please try again.");
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

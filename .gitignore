@@ -1,0 +1,10 @@
+# Ignore environment files
+.env
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

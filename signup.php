@@ -1,6 +1,7 @@
 <?php
 
-
+require_once 'loadEnv.php';
+loadEnv(__DIR__ . '/.env');
 ob_start();
 require_once('includes/load.php');
 if($session->isUserLoggedIn(true)) { redirect('home.php', false);}
@@ -39,10 +40,10 @@ function send_otp_email($email, $otp) {
         
         // SMTP Configuration
         $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com'; // Use Gmail SMTP
+        $mail->Host = getenv('SMTP_HOST'); // Use Gmail SMTP
         $mail->SMTPAuth = true;
-        $mail->Username = 'rueda.antonl@gmail.com';
-        $mail->Password = 'qwjd dfzt hmra abct';
+        $mail->Username = getenv('SMTP_USERNAME');
+        $mail->Password = getenv('SMTP_PASSWORD');
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
         
@@ -354,7 +355,15 @@ if(isset($_POST['signup'])) {
             <p>Join thousands of businesses using SpringBullbars</p>
         </div>
         
-        <?php echo display_msg($msg); ?>
+        <?php 
+        if(isset($msg) && is_array($msg)) {
+            foreach($msg as $message) {
+                echo display_msg($message);
+            }
+        } else {
+            echo display_msg($msg);
+        }
+        ?>
         
         <form method="post" action="signup.php" id="signupForm">
             <div class="form-group">

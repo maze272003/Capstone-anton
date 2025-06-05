@@ -1,7 +1,11 @@
 <?php
   ob_start();
   require_once('includes/load.php');
+  
   if($session->isUserLoggedIn(true)) { redirect('home.php', false);}
+    require_once 'loadEnv.php';
+    loadEnv(__DIR__ . '/.env');
+    $site_key = getenv('RECAPTCHA_SITE_KEY');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -1222,8 +1226,9 @@
                     </div>
                 </div>
                 
-                <div class="g-recaptcha" id="recaptchaContainer" data-sitekey="6Le-GFArAAAAAAwIsJ1__RFmKwOPo3poe8azmzTy"></div>
+                <div class="g-recaptcha" id="recaptchaContainer" data-sitekey="<?php echo htmlspecialchars($site_key); ?>"></div>
                 <div class="recaptcha-error" id="recaptchaError">Please verify you're not a robot</div>
+
                 
                 <button type="submit" class="modal-btn" id="loginButton">
                     <span id="loginButtonText">Login</span>

@@ -44,12 +44,19 @@ function validate_fields($var){
    Ex echo displayt_msg($message);
 /*--------------------------------------------------------------*/
 function display_msg($msg =''){
-   $output = array();
+   $output = '';
    if(!empty($msg)) {
-      foreach ($msg as $key => $value) {
-         $output  = "<div class=\"alert alert-{$key}\">";
+      if(is_array($msg)) {
+         foreach ($msg as $value) {
+            $output .= "<div class=\"alert alert-danger\">";
+            $output .= "<a href=\"#\" class=\"close\" data-dismiss=\"alert\">&times;</a>";
+            $output .= remove_junk(first_character($value));
+            $output .= "</div>";
+         }
+      } else {
+         $output  = "<div class=\"alert alert-danger\">";
          $output .= "<a href=\"#\" class=\"close\" data-dismiss=\"alert\">&times;</a>";
-         $output .= remove_junk(first_character($value));
+         $output .= remove_junk(first_character($msg));
          $output .= "</div>";
       }
       return $output;
